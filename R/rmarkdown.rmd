@@ -1,0 +1,44 @@
+---
+title: "__TITLE__"
+author: "daniel.lundin@lnu.se"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+knit: (function(fname, encoding) { rmarkdown::render(fname, encoding = encoding, output_file = sprintf('%s/%s.%s.pdf', dirname(fname), sub('.rmd', '', basename(fname)), format(Sys.time(), "%Y%m%d"))) })
+output:
+  pdf_document:
+    fig_caption: yes
+    fig_height: 9
+    fig_width: 8
+    number_sections: yes
+    toc: yes
+  html_document:
+    toc: yes
+---
+
+```{r setup, echo=F}
+
+knitr::opts_chunk$set(fig.path='figures/')
+
+```
+
+```{r libraries, echo=F}
+
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(ggplot2))
+suppressPackageStartupMessages(library(kfigr))
+suppressPackageStartupMessages(library(knitr))
+suppressPackageStartupMessages(library(readr))
+suppressPackageStartupMessages(library(tidyr))
+
+```
+
+```{r constants, echo=F}
+
+```
+
+```{r functions, echo=F}
+
+```
+
+```{r read-data, echo=F}
+
+```

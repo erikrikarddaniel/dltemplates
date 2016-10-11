@@ -1,0 +1,11 @@
+sessionname dltemplates
+setenv ROOT $PWD
+chdir R
+screen -t R
+chdir $ROOT/ruby
+screen -t ruby
+chdir $ROOT/slurm
+screen -t slurm
+chdir $ROOT
+screen -t man
+screen -t root
