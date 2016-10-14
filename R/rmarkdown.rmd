@@ -16,11 +16,11 @@ output:
 
 ```{r setup, echo=F}
 
-knitr::opts_chunk$set(fig.path='figures/')
+knitr::opts_chunk$set(echo=F, fig.path='figures/')
 
 ```
 
-```{r libraries, echo=F}
+```{r libraries, message=F}
 
 suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(kfigr))
@@ -28,14 +28,14 @@ suppressPackageStartupMessages(library(knitr))
 
 ```
 
-```{r constants, echo=F}
+```{r constants}
 
 ```
 
-```{r functions, echo=F}
+```{r functions}
 
 ```
 
-```{r read-data, echo=F}
+```{r read-data}
 
 ```
