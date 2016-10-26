@@ -28,7 +28,7 @@ MAKECALL__NNN__      = $(MAKECALL_VERSION); $(MAKECALL_PARAMS); $(MAKECALL_INFIL
 
 # *** Targets ***
 
-%.suffix0:: %.suffix1 %.suffix1 %.suffixn
+%.suffix0: %.suffix1 %.suffix1 %.suffixn
 	$(MAKECALL__NNN__)
 	__PROGRAM_CALL__
 	echo "`date +"%Y%m%d %H:%M:%S"`: DONE" >> $@.makecall
