@@ -17,18 +17,18 @@ __PGM__OPTS =
 
 # *** Internal ***
 
-# MAKECALL__NNN__ is a macro that defines what will be output to the .makecall
+# MAKECALL__PGM__ is a macro that defines what will be output to the .makecall
 # file, the file that records versions, file stamps, parameters etc.
 #
 # *Don't redefine!*
-MAKECALL_VERSION     = echo "`date +"%Y%m%d %H:%M:%S"`: $@ was made with `diamond --version`" > $@.makecall
+MAKECALL_VERSION     = echo "`date +"%Y%m%d %H:%M:%S"`: $@ was made with `__PGM__ --version`" > $@.makecall
 MAKECALL_PARAMS      = echo "	Called with parameters: $(__PGM__OPTS)" >> $@.makecall
 MAKECALL_INFILES     = echo "	Input files: $^ (`ls -l $^|tr '\n' ','`)" >> $@.makecall
-MAKECALL__NNN__      = $(MAKECALL_VERSION); $(MAKECALL_PARAMS); $(MAKECALL_INFILES)
+MAKECALL__PGM__      = $(MAKECALL_VERSION); $(MAKECALL_PARAMS); $(MAKECALL_INFILES)
 
 # *** Targets ***
 
-%.suffix0:: %.suffix1 %.suffix1 %.suffixn
-	$(MAKECALL__NNN__)
-	__PROGRAM_CALL__
+%.suffix0: %.suffix1 %.suffix1 %.suffixn
+	$(MAKECALL__PGM__)
+	__PGM_CALL__
 	echo "`date +"%Y%m%d %H:%M:%S"`: DONE" >> $@.makecall
