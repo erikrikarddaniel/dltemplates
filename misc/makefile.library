@@ -13,7 +13,7 @@ SHELL := /bin/bash
 # Override in your Makefile by setting a parameter *after* the row that
 # includes this file, see documentation in doc/makefile.md.
 #
-__PGM__OPTS =
+__PGM___OPTS =
 
 # *** Internal ***
 
@@ -21,14 +21,14 @@ __PGM__OPTS =
 # file, the file that records versions, file stamps, parameters etc.
 #
 # *Don't redefine!*
-MAKECALL_VERSION     = echo "`date +"%Y%m%d %H:%M:%S"`: $@ was made with `__PGM__ --version`" > $@.makecall
-MAKECALL_PARAMS      = echo "	Called with parameters: $(__PGM__OPTS)" >> $@.makecall
+MAKECALL_VERSION     = echo "`date +"%Y%m%d %H:%M:%S"`: $@ was made with `__PROGRAM__ --version`" > $@.makecall
+MAKECALL_PARAMS      = echo "	Called with parameters: $(__PGM___OPTS)" >> $@.makecall
 MAKECALL_INFILES     = echo "	Input files: $^ (`ls -l $^|tr '\n' ','`)" >> $@.makecall
-MAKECALL__PGM__      = $(MAKECALL_VERSION); $(MAKECALL_PARAMS); $(MAKECALL_INFILES)
+MAKECALL___PGM__      = $(MAKECALL_VERSION); $(MAKECALL_PARAMS); $(MAKECALL_INFILES)
 
 # *** Targets ***
 
 %.suffix0: %.suffix1 %.suffix1 %.suffixn
-	$(MAKECALL__PGM__)
+	$(MAKECALL___PGM__)
 	__PGM_CALL__
 	echo "`date +"%Y%m%d %H:%M:%S"`: DONE" >> $@.makecall
