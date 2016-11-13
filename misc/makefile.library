@@ -29,6 +29,6 @@ MAKECALL___PGM__      = $(MAKECALL_VERSION); $(MAKECALL_PARAMS); $(MAKECALL_INFI
 # *** Targets ***
 
 %.suffix0: %.suffix1 %.suffix1 %.suffixn
-	$(MAKECALL___PGM__)
+	@$(MAKECALL___PGM__)
 	__PGM_CALL__
-	echo "`date +"%Y%m%d %H:%M:%S"`: DONE" >> $@.makecall
+	@echo "`date +"%Y%m%d %H:%M:%S"`: DONE" >> $@.makecall
