@@ -23,12 +23,12 @@ __PGM___OPTS =
 # *Don't redefine!*
 MAKECALL_VERSION     = echo "`date +"%Y%m%d %H:%M:%S"`: $@ was made with `__PROGRAM__ --version`" > $@.makecall
 MAKECALL_PARAMS      = echo "	Called with parameters: $(__PGM___OPTS)" >> $@.makecall
-MAKECALL_INFILES     = echo "	Input files: $^ (`ls -l $^|tr '\n' ','`)" >> $@.makecall
+MAKECALL_INFILES     = echo "	Input files: $^ (`ls -lL $^|tr '\n' ','`)" >> $@.makecall
 MAKECALL___PGM__      = $(MAKECALL_VERSION); $(MAKECALL_PARAMS); $(MAKECALL_INFILES)
 
 # *** Targets ***
 
 %.suffix0: %.suffix1 %.suffix1 %.suffixn
-	$(MAKECALL___PGM__)
+	@$(MAKECALL___PGM__)
 	__PGM_CALL__
-	echo "`date +"%Y%m%d %H:%M:%S"`: DONE" >> $@.makecall
+	@echo "`date +"%Y%m%d %H:%M:%S"`: DONE" >> $@.makecall
