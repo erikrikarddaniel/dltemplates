@@ -15,27 +15,23 @@ output:
 ---
 
 ```{r setup, echo=F}
-
 knitr::opts_chunk$set(echo=F, fig.path='figures/')
-
 ```
 
 ```{r libraries, message=F}
-
-suppressPackageStartupMessages(library(tidyverse))
+suppressPackageStartupMessages(library(readr))
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(tidyr))
+suppressPackageStartupMessages(library(ggplot2))
 suppressPackageStartupMessages(library(kfigr))
 suppressPackageStartupMessages(library(knitr))
-
 ```
 
 ```{r constants}
-
 ```
 
 ```{r functions}
-
 ```
 
 ```{r read-data}
-
 ```
