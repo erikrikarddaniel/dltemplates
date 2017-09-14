@@ -5,8 +5,9 @@
 # Author: __AUTHOR_EMAIL__
 
 suppressPackageStartupMessages(library(optparse))
-suppressPackageStartupMessages(library(tidyverse))
-suppressPackageStartupMessages(library(dtplyr))
+suppressPackageStartupMessages(library(readr))
+suppressPackageStartupMessages(library(dplyr))
+suppressPackageStartupMessages(library(tidyr))
 
 # Constants for names of different formats
 FORMAT_ONE        = 'one'
