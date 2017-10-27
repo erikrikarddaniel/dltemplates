@@ -2,5 +2,6 @@ sessionname __PROJNAME__
 setenv ROOT $PWD
 # __INSERTPOINT__ This line allows a script to insert new configuration lines here.
 chdir $ROOT
+screen -t rstudio
 screen -t man
 screen -t root
