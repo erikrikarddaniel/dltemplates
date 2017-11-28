@@ -17,14 +17,14 @@ __PGM___OPTS =
 
 # *** Internal ***
 
-# MAKECALL__PGM__ is a macro that defines what will be output to the .makecall
+# MAKECALL___PGM__ is a macro that defines what will be output to the .makecall
 # file, the file that records versions, file stamps, parameters etc.
 #
 # *Don't redefine!*
-MAKECALL_VERSION     = echo "`date +"%Y%m%d %H:%M:%S"`: $@ was made with `__PROGRAM__ --version`" > $@.makecall
-MAKECALL_PARAMS      = echo "	Called with parameters: $(__PGM___OPTS)" >> $@.makecall
-MAKECALL_INFILES     = echo "	Input files: $^ (`ls -lL $^|tr '\n' ','`)" >> $@.makecall
-MAKECALL___PGM__      = $(MAKECALL_VERSION); $(MAKECALL_PARAMS); $(MAKECALL_INFILES)
+MAKECALL___PGM___VERSION     = echo "`date +"%Y%m%d %H:%M:%S"`: $@ was made with `__PROGRAM__ --version`" > $@.makecall
+MAKECALL___PGM___PARAMS      = echo "	Called with parameters: $(__PGM___OPTS)" >> $@.makecall
+MAKECALL___PGM___INFILES     = echo "	Input files: $^ (`ls -lL $^|tr '\n' ','`)" >> $@.makecall
+MAKECALL___PGM__             = $(MAKECALL___PGM___VERSION); $(MAKECALL___PGM___PARAMS); $(MAKECALL___PGM___INFILES)
 
 # *** Targets ***
 
