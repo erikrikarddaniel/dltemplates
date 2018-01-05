@@ -34,7 +34,13 @@ option_list = list(
     help="Print progress messages"
   )
 )
-opt = parse_args(OptionParser(option_list=option_list))
+opt = parse_args(
+  OptionParser(
+    usage = "%prog [options] file0 .. filen", 
+    option_list = option_list
+  ), 
+  positional_arguments = TRUE
+)
 
 if ( opt$formats ) {
   write(cat("Supported formats:", FORMATS, "\n"))
