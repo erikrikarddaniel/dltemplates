@@ -34,21 +34,27 @@ option_list = list(
     help="Print progress messages"
   )
 )
-opt = parse_args(OptionParser(option_list=option_list))
+opt = parse_args(
+  OptionParser(
+    usage = "%prog [options] file0 .. filen", 
+    option_list = option_list
+  ), 
+  positional_arguments = TRUE
+)
 
-if ( opt$formats ) {
+if ( opt$options$formats ) {
   write(cat("Supported formats:", FORMATS, "\n"))
   quit('no')
 }
 
 logmsg = function(msg, llevel='INFO') {
-  if ( opt$verbose ) {
+  if ( opt$options$verbose ) {
     write(
       sprintf("%s: %s: %s", llevel, format(Sys.time(), "%Y-%m-%d %H:%M:%S"), msg),
       stderr()
     )
   }
 }
-logmsg(sprintf("Reading %s", opt$inputfile))
+logmsg(sprintf("Reading %s", opt$options$inputfile))
 
 logmsg("Done")
