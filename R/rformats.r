@@ -9,6 +9,8 @@ suppressPackageStartupMessages(library(readr))
 suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(tidyr))
 
+SCRIPT_VERSION = "N.N"
+
 # Constants for names of different formats
 FORMAT_ONE        = 'one'
 FORMAT_TWO        = 'two'
@@ -32,6 +34,10 @@ option_list = list(
   make_option(
     c("-v", "--verbose"), action="store_true", default=FALSE, 
     help="Print progress messages"
+  ),
+  make_option(
+    c("-V", "--version"), action="store_true", default=FALSE, 
+    help="Print program version and exit"
   )
 )
 opt = parse_args(
@@ -41,6 +47,11 @@ opt = parse_args(
   ), 
   positional_arguments = TRUE
 )
+
+if ( opt$options$version ) {
+  write(SCRIPT_VERSION, stdout())
+  quit('no')
+}
 
 if ( opt$options$formats ) {
   write(cat("Supported formats:", FORMATS, "\n"))
