@@ -2,7 +2,6 @@
 title: "__TITLE__"
 author: "daniel.lundin@lnu.se"
 date: "`r format(Sys.time(), '%Y-%m-%d')`"
-knit: (function(fname, encoding) { rmarkdown::render(fname, encoding = encoding, output_file = sprintf('%s/%s.%s.pdf', dirname(fname), sub('.rmd', '', basename(fname)), format(Sys.time(), "%Y%m%d"))) })
 output:
   pdf_document:
     fig_caption: yes
@@ -29,9 +28,6 @@ suppressPackageStartupMessages(library(knitr))
 ```
 
 ```{r constants}
-```
-
-```{r functions}
 ```
 
 ```{r read-data}
