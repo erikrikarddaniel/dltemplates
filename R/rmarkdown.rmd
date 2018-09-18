@@ -13,12 +13,12 @@ output:
     toc: yes
 ---
 
-```{r setup, echo=F}
-knitr::opts_chunk$set(echo=F, fig.path='figures/')
+```{r setup, echo=F, cache = FALSE}
+knitr::opts_chunk$set(echo=F, fig.path='figures/', cache = TRUE)
 ggplot2::theme_set(ggplot2::theme_bw())
 ```
 
-```{r libraries, message=F}
+```{r libraries, message=F, cache = FALSE}
 suppressPackageStartupMessages(library(readr))
 suppressPackageStartupMessages(library(dplyr))
 suppressPackageStartupMessages(library(tidyr))
