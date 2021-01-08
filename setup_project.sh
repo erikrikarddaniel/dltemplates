@@ -7,11 +7,11 @@ mkdir $pname
 cd $pname
 mkdir data
 touch data/.gitkeep
-mkdir analyses
-touch analyses/.gitkeep
+mkdir scripts
+touch scripts/.gitkeep
 
 cp ~/dev/dltemplates/R/project.Rproj ${pname}.Rproj
-sed "s/__PROJNAME__/${pname}/" ~/dev/dltemplates/misc/screenrc | sed '/__INSERTPOINT__/a chdir analyses\nscreen -t analyses' | sed '/__INSERTPOINT__/a chdir data\nscreen -t data' > .screenrc
+sed "s/__PROJNAME__/${pname}/" ~/dev/dltemplates/misc/screenrc | sed '/__INSERTPOINT__/a chdir $ROOT/scripts\nscreen -t scripts' | sed '/__INSERTPOINT__/a chdir $ROOT/data\nscreen -t data' > .screenrc
 cp ~/dev/biomakefiles/gitignores/project_root.gitignore .gitignore
 
 git init .
