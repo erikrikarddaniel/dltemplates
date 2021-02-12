@@ -18,7 +18,7 @@ output:
 ---
 
 ```{r setup, echo=F, cache = FALSE}
-knitr::opts_chunk$set(echo=F, fig.path='figures/', cache = TRUE)
+knitr::opts_chunk$set(echo = TRUE, fig.path='figures/', cache = TRUE)
 ggplot2::theme_set(ggplot2::theme_bw())
 ```
 
