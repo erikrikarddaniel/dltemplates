@@ -46,3 +46,5 @@ suppressPackageStartupMessages(library(knitr))
 
 ```{r read-data}
 ```
+
+Example citation [@author].
