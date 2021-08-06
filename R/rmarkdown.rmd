@@ -41,3 +41,13 @@ suppressPackageStartupMessages(library(knitr))
 
 ```{r read-data}
 ```
+
+# Introduction
+
+# Materials and Methods
+
+# Results
+
+# Discussion
+
+# References
