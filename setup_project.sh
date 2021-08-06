@@ -13,7 +13,7 @@ touch scripts/.gitkeep
 cp ~/dev/dltemplates/R/project.Rproj ${pname}.Rproj
 sed "s/__PROJNAME__/${pname}/" ~/dev/dltemplates/misc/screenrc | sed '/__INSERTPOINT__/a chdir $ROOT/scripts\nscreen -t scripts' | sed '/__INSERTPOINT__/a chdir $ROOT/data\nscreen -t data' > .screenrc
 cp ~/dev/biomakefiles/gitignores/project_root.gitignore .gitignore
-cp ~/dev/dltemplates/rmarkdown.rmd ${pname}.Rmd
+cp ~/dev/dltemplates/R/rmarkdown.rmd ${pname}.Rmd
 
 git init .
 git add .
