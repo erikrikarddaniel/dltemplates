@@ -22,18 +22,19 @@ knitr::opts_chunk$set(echo = TRUE, fig.path='figures/', cache = TRUE)
 ggplot2::theme_set(ggplot2::theme_bw())
 ```
 
-```{r libraries, message=F, cache = FALSE}
-suppressPackageStartupMessages(library(readr))
-suppressPackageStartupMessages(library(feather))
-suppressPackageStartupMessages(library(data.table))
-suppressPackageStartupMessages(library(dtplyr))
-suppressPackageStartupMessages(library(dplyr, warn.conflicts = FALSE))
-suppressPackageStartupMessages(library(tidyr))
-suppressPackageStartupMessages(library(purrr))
-suppressPackageStartupMessages(library(stringr))
-suppressPackageStartupMessages(library(ggplot2))
-suppressPackageStartupMessages(library(kfigr))
-suppressPackageStartupMessages(library(knitr))
+```{r libraries, message = FALSE, cache = FALSE, include = FALSE}
+library(readr)
+library(feather)
+library(data.table)
+library(dtplyr)
+library(dplyr, warn.conflicts = FALSE)
+library(tidyr)
+library(purrr)
+library(stringr)
+library(ggplot2)
+library(kfigr)
+library(knitr)
+library(DT)
 ```
 
 ```{r constants}
