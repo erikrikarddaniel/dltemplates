@@ -3,17 +3,17 @@ title: "__TITLE__"
 author: "daniel.lundin@lnu.se"
 date: "`r format(Sys.time(), '%Y-%m-%d')`"
 output:
-  html_document:
-    toc: yes
-    toc_float:
-      collapse: no
-    fig_caption: yes
-  pdf_document:
-    fig_caption: yes
-    fig_height: 9
-    fig_width: 8
-    number_sections: yes
-    toc: yes
+    html_document:
+        toc: yes
+        toc_float:
+          collapse: no
+        fig_caption: yes
+    pdf_document:
+        fig_caption: yes
+        fig_height: 9
+        fig_width: 8
+        number_sections: yes
+        toc: yes
 ---
 
 ```{r setup, echo=F, cache = FALSE}

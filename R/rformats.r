@@ -24,52 +24,52 @@ FORMATS           = c(FORMAT_ONE, FORMAT_TWO)
 
 # Get arguments
 option_list = list(
-  make_option(
-    c('--inputfile'), type='character',
-    help='Name of input file'
-  ),
-  make_option(
-    c('--format'), type='character', default=FORMAT_DEFAULT,
-    help='Output format, default: [default]. See --formats for a list of supported formats.'
-  ),
-  make_option(
-    c('--formats'), action='store_true', default=FALSE,
-    help='Lists supported formats'
-  ),
-  make_option(
-    c("-v", "--verbose"), action="store_true", default=FALSE, 
-    help="Print progress messages"
-  ),
-  make_option(
-    c("-V", "--version"), action="store_true", default=FALSE, 
-    help="Print program version and exit"
-  )
+    make_option(
+        c('--inputfile'), type='character',
+        help='Name of input file'
+    ),
+    make_option(
+        c('--format'), type='character', default=FORMAT_DEFAULT,
+        help='Output format, default: [default]. See --formats for a list of supported formats.'
+    ),
+    make_option(
+        c('--formats'), action='store_true', default=FALSE,
+        help='Lists supported formats'
+    ),
+    make_option(
+        c("-v", "--verbose"), action="store_true", default=FALSE, 
+        help="Print progress messages"
+    ),
+    make_option(
+        c("-V", "--version"), action="store_true", default=FALSE, 
+        help="Print program version and exit"
+    )
 )
 opt = parse_args(
-  OptionParser(
-    usage = "%prog [options] file0 .. filen", 
-    option_list = option_list
-  ), 
-  positional_arguments = TRUE
+    OptionParser(
+        usage = "%prog [options] file0 .. filen", 
+        option_list = option_list
+    ), 
+    positional_arguments = TRUE
 )
 
 if ( opt$options$version ) {
-  write(SCRIPT_VERSION, stdout())
-  quit('no')
+    write(SCRIPT_VERSION, stdout())
+    quit('no')
 }
 
 if ( opt$options$formats ) {
-  write(cat("Supported formats:", FORMATS, "\n"))
-  quit('no')
+    write(cat("Supported formats:", FORMATS, "\n"))
+    quit('no')
 }
 
 logmsg = function(msg, llevel='INFO') {
-  if ( opt$options$verbose ) {
-    write(
-      sprintf("%s: %s: %s", llevel, format(Sys.time(), "%Y-%m-%d %H:%M:%S"), msg),
-      stderr()
-    )
-  }
+    if ( opt$options$verbose ) {
+        write(
+            sprintf("%s: %s: %s", llevel, format(Sys.time(), "%Y-%m-%d %H:%M:%S"), msg),
+            stderr()
+        )
+    }
 }
 logmsg(sprintf("Reading %s", opt$options$inputfile))
 
