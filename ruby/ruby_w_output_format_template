@@ -21,98 +21,98 @@ $VERBOSE = true
 require 'optparse'
 
 FORMATS = {
-  'fmt' => { 
-    'call' => :fmtcall, 
-    'desc' => 'Format description' ,
-    'mandopts' => [ ]
-  },
+    'fmt' => { 
+        'call' => :fmtcall, 
+        'desc' => 'Format description' ,
+        'mandopts' => [ ]
+    },
 }
 DEFAULT_FORMAT = 'fmt'
 
 def formats(format = false)
-  if format and FORMATS[format]
-    "#{format}: #{FORMATS[format]['desc']}\n"
-  elsif format and format != ''
-    "Format #{format} not supported\n"
-  else
-    "Supported formats:\n\t" + FORMATS.keys.sort.map { |f| "#{f}#{ f == DEFAULT_FORMAT ? ' * default *' : ''}" }.join("\n\t") + "\n"
-  end
+    if format and FORMATS[format]
+        "#{format}: #{FORMATS[format]['desc']}\n"
+    elsif format and format != ''
+        "Format #{format} not supported\n"
+    else
+        "Supported formats:\n\t" + FORMATS.keys.sort.map { |f| "#{f}#{ f == DEFAULT_FORMAT ? ' * default *' : ''}" }.join("\n\t") + "\n"
+    end
 end
 
 @options = {
-  :format => DEFAULT_FORMAT
+    :format => DEFAULT_FORMAT
 }
 opt_parser = OptionParser.new do |opts|
-  opts.banner = <<BANNER
+    opts.banner = <<BANNER
 __SCRIPT_NAME__: __DESCRIPTION__
-  __SCRIPT_NAME__ [options] file0..filen
+    __SCRIPT_NAME__ [options] file0..filen
 BANNER
 
-  opts.on "--format=format", "Output format, default #{DEFAULT_FORMAT}"  do |v| 
-    @options[:format] = v 
-  end
+    opts.on "--format=format", "Output format, default #{DEFAULT_FORMAT}"  do |v| 
+        @options[:format] = v 
+    end
 
-  opts.on "--formats[=v]", "Lists available output formats or, with a format as parameter, writes a description of a format"  do |v|
-    puts formats v 
-    exit 0
-  end
+    opts.on "--formats[=v]", "Lists available output formats or, with a format as parameter, writes a description of a format"  do |v|
+        puts formats v 
+        exit 0
+    end
 
-  opts.on "-h", "--help", "This info"  do 
-    puts opts
-    exit 0
-  end
+    opts.on "-h", "--help", "This info"  do 
+        puts opts
+        exit 0
+    end
 
-  opts.on "-v", "--verbose", "Be verbose"  do |v| 
-    @options[:verbose] = v 
-  end
+    opts.on "-v", "--verbose", "Be verbose"  do |v| 
+        @options[:verbose] = v 
+    end
 end
 begin
-  opt_parser.parse!
-  mandatory = FORMATS[@options[:format]]['mandopts'] + [ :mand_opt ]	# Fill in with mandatory option names (i.e. starting with :)
-  missing = mandatory.select { |param| @options[param].nil? }
-  unless missing.empty?
-    warn "Missing options: #{missing.map { |m| "--#{m}" }.join(", ")}"
+    opt_parser.parse!
+    mandatory = FORMATS[@options[:format]]['mandopts'] + [ :mand_opt ]	# Fill in with mandatory option names (i.e. starting with :)
+    missing = mandatory.select { |param| @options[param].nil? }
+    unless missing.empty?
+        warn "Missing options: #{missing.map { |m| "--#{m}" }.join(", ")}"
+        warn opt_parser
+        exit 1
+    end
+rescue OptionParser::InvalidOption, OptionParser::MissingArgument
+    warn "#{$!}"
     warn opt_parser
     exit 1
-  end
-rescue OptionParser::InvalidOption, OptionParser::MissingArgument
-  warn "#{$!}"
-  warn opt_parser
-  exit 1
 end
 
 def fmtcall()
 end
 
 unless FORMATS.keys.find { |f| f == @options[:format] }
-  warn "Format #{@options[:format]} unsupported"
-  warn formats
-  exit 1
+    warn "Format #{@options[:format]} unsupported"
+    warn formats
+    exit 1
 end
 
 # Loop over infiles
 @results = nil
 begin
-  file = nil
-  ARGV.each do |file|
-    if file == '-'
-      warn "Parsing STDIN" if @options[:verbose]
-      io = STDIN
-    else
-      warn "Parsing #{file}" if @options[:verbose]
-      if file =~ /.gz$/
+    file = nil
+    ARGV.each do |file|
+        if file == '-'
+            warn "Parsing STDIN" if @options[:verbose]
+            io = STDIN
+        else
+            warn "Parsing #{file}" if @options[:verbose]
+            if file =~ /.gz$/
 	io = IO.popen("gunzip -c #{file}", "r")
-      elsif file =~ /.bz2$/
+            elsif file =~ /.bz2$/
 	io = IO.popen("bunzip2 -c #{file}", "r")
-      else
+            else
 	io = File.new(file)
-      end
+            end
+        end
+        io.each do |line|
+        end
     end
-    io.each do |line|
-    end
-  end
 rescue
-  warn "Failed to process file '#{file}': #{$!}, backtrace:\n\t#{$!.backtrace.join("\n\t")}"
+    warn "Failed to process file '#{file}': #{$!}, backtrace:\n\t#{$!.backtrace.join("\n\t")}"
 end
 
 # Print out the results

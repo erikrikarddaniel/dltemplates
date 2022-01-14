@@ -3,18 +3,18 @@ title: "__TITLE__"
 author: "daniel.lundin@dbb.su.se"
 date: "`r format(Sys.time(), '%Y-%m-%d')`"
 output:
-  bookdown::html_document2:
-    toc: yes
-    toc_float:
-      collapse: no
-    fig_caption: yes
-    code_folding: hide
-  pdf_document:
-    fig_caption: yes
-    fig_height: 9
-    fig_width: 8
-    number_sections: yes
-    toc: yes
+    bookdown::html_document2:
+        toc: yes
+        toc_float:
+          collapse: no
+        fig_caption: yes
+        code_folding: hide
+    pdf_document:
+        fig_caption: yes
+        fig_height: 9
+        fig_width: 8
+        number_sections: yes
+        toc: yes
 bibliography: [ bibliography.bib ]
 biblio-style: apalike
 link-citations: yes
@@ -47,10 +47,10 @@ library(DT)
 
 ```{r constants}
 AA_COLOURS = c(
-  '-'  = '#ffffff', 'A'  = '#1980e6', 'C'  = '#000000', 'D'  = '#cc4dcc', 'E'  = '#cc4dcc', 'F'  = '#1980e6',
-  'G'  = '#e6994d', 'H'  = '#19b3b3', 'I'  = '#1980e6', 'K'  = '#e63319', 'L'  = '#1980e6', 'M'  = '#1980e6',
-  'N'  = '#19cc19', 'P'  = '#cccc00', 'Q'  = '#19cc19', 'R'  = '#e63319', 'S'  = '#19cc19', 'T'  = '#19cc19',
-  'U'  = '#e68080', 'V'  = '#1980e6', 'W'  = '#1980e6', 'X'  = '#c0c0c0', 'Y'  = '#19b3b3', 'NA' = '#000000'
+    '-'  = '#ffffff', 'A'  = '#1980e6', 'C'  = '#000000', 'D'  = '#cc4dcc', 'E'  = '#cc4dcc', 'F'  = '#1980e6',
+    'G'  = '#e6994d', 'H'  = '#19b3b3', 'I'  = '#1980e6', 'K'  = '#e63319', 'L'  = '#1980e6', 'M'  = '#1980e6',
+    'N'  = '#19cc19', 'P'  = '#cccc00', 'Q'  = '#19cc19', 'R'  = '#e63319', 'S'  = '#19cc19', 'T'  = '#19cc19',
+    'U'  = '#e68080', 'V'  = '#1980e6', 'W'  = '#1980e6', 'X'  = '#c0c0c0', 'Y'  = '#19b3b3', 'NA' = '#000000'
 )
 ```
 
