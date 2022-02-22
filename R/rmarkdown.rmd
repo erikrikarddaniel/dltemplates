@@ -15,6 +15,8 @@ output:
         fig_width: 8
         number_sections: yes
         toc: yes
+bibliography:
+    - grateful-refs.bib
 ---
 
 ```{r setup, echo=F, cache = FALSE}
@@ -35,6 +37,7 @@ library(ggplot2)
 library(kfigr)
 library(knitr)
 library(DT)
+library(grateful)
 ```
 
 ```{r constants}
@@ -46,6 +49,13 @@ library(DT)
 # Introduction
 
 # Materials and Methods
+
+## R and packages
+
+```{r cite-packages, cache = FALSE}
+cite_packages(output = "table") %>%
+  kable()
+```
 
 # Results
 

@@ -15,7 +15,9 @@ output:
         fig_width: 8
         number_sections: yes
         toc: yes
-bibliography: [ bibliography.bib ]
+bibliography: 
+    - bibliography.bib
+    - grateful-refs.bib
 biblio-style: apalike
 link-citations: yes
 ---
@@ -43,6 +45,7 @@ library(patchwork)
 library(kfigr)
 library(knitr)
 library(DT)
+library(grateful)
 ```
 
 ```{r constants}
@@ -60,6 +63,13 @@ AA_COLOURS = c(
 # Introduction
 
 # Materials and Methods
+
+## R and packages
+
+```{r cite-packages, cache = FALSE}
+cite_packages(output = "table") %>%
+  kable()
+```
 
 # Results
 

@@ -17,7 +17,9 @@ output:
         fig_width: 8
         number_sections: yes
         toc: yes
-bibliography: [ bibliography.bib ]
+bibliography: 
+    - bibliography.bib
+    - grateful-refs.bib
 biblio-style: apalike
 link-citations: yes
 ---
@@ -39,6 +41,7 @@ suppressPackageStartupMessages(library(stringr))
 suppressPackageStartupMessages(library(ggplot2))
 suppressPackageStartupMessages(library(kfigr))
 suppressPackageStartupMessages(library(knitr))
+library(grateful)
 ```
 
 ```{r constants}
@@ -47,4 +50,21 @@ suppressPackageStartupMessages(library(knitr))
 ```{r read-data}
 ```
 
+# Introduction
+
 Example citation [@author].
+
+# Materials and Methods
+
+## R and packages
+
+```{r cite-packages, cache = FALSE}
+cite_packages(output = "table") %>%
+  kable()
+```
+
+# Results
+
+# Discussion
+
+# References
