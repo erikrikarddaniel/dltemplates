@@ -62,7 +62,7 @@ The version of R and versions of packages used in this project can be found in
 (`r figr('cite-packages', T, type = 'Table')`).
 
 ```{r cite-packages, cache = FALSE}
-cite_packages(output = "table") %>%
+cite_packages(output = "table", pkgs ="Session") %>%
   kable()
 ```
 
