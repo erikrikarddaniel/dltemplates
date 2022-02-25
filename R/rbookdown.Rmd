@@ -58,11 +58,11 @@ Example citation [@author].
 
 ## R and packages
 
-The version of R and versions of packages used in this project can be found in
+This analysis was run with `r R.version$version.string`. Versions of packages used can be found in
 `r figr('cite-packages', T, type = 'Table')`.
 
 ```{r cite-packages, cache = FALSE}
-cite_packages(output = "table", pkgs ="Session") %>%
+cite_packages(output = "table", pkgs = "Session") %>%
   kable()
 ```
 
