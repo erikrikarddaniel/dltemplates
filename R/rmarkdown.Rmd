@@ -52,11 +52,8 @@ library(grateful)
 
 ## R and packages
 
-```{r, include=FALSE}
-Rversion <- R.version$version.string
-```
-
-This analysis was run with `r Rversion` versions of packages used in this project can be found in the table below.
+This analysis was run with `r R.version$version.string`. Versions of packages used can be found in
+`r figr('cite-packages', T, type = 'Table')`.
 
 ```{r cite-packages, cache = FALSE}
 cite_packages(output = "table", pkgs = "Session") %>%
