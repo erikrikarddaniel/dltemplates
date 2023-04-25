@@ -59,7 +59,7 @@ library(grateful)
 This analysis was run with `r R.version$version.string`. Versions of packages used can be found in Table \@ref(tab:cite-packages).
 
 ```{r cite-packages, cache = FALSE}
-cite_packages(output = "table", pkgs = "Session") %>%
+cite_packages(output = "table", pkgs = "Session", out.dir = getwd()) %>%
   kable(
     caption = '**Versions of R and packages used in this analysis.**'
   )
