@@ -57,16 +57,15 @@ library(grateful)
 
 ## R and packages
 
-This analysis was run with `r R.version$version.string`. Versions of packages used can be found in Table \@ref(tab:cite-packages).
+This analysis was run with `r R.version$version.string`. Versions of packages used can be found in Table @tbl-cite-packages.
 
 ```{r}
-#| label: cite-packages
+#| label: tbl-cite-packages
 #| cache: false
+#| tbl-cap: Versions of R and packages used in this analysis.
 
 cite_packages(output = "table", pkgs = "Session", out.dir = getwd()) %>%
-  kable(
-    caption = '**Versions of R and packages used in this analysis.**'
-  )
+  kable()
 ```
 
 # Results
