@@ -1,0 +1,76 @@
+---
+title: "__TITLE__"
+author: "daniel.lundin@lnu.se"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+format:
+  html:
+    code-fold: true
+bibliography:
+  - grateful-refs.bib
+---
+
+```{r}
+#| label: setup
+#| echo: false
+#| cache: false
+
+knitr::opts_chunk$set(echo = TRUE, fig.path='figures/', cache = TRUE, fig.width = 10)
+ggplot2::theme_set(ggplot2::theme_bw())
+```
+
+```{r}
+#| label: libraries
+#| message: false
+#| cache: false
+#| include: false
+
+library(readr)
+library(feather)
+library(data.table)
+library(dtplyr)
+library(dplyr, warn.conflicts = FALSE)
+library(tidyr)
+library(purrr)
+library(stringr)
+library(ggplot2)
+library(kfigr)
+library(knitr)
+library(DT)
+library(grateful)
+```
+
+```{r}
+#| label: constants
+```
+
+```{r}
+#| label: read-data
+```
+
+# Version history
+
+# Summary
+
+# Introduction
+
+# Materials and Methods
+
+## R and packages
+
+This analysis was run with `r R.version$version.string`. Versions of packages used can be found in Table \@ref(tab:cite-packages).
+
+```{r}
+#| label: cite-packages
+#| cache: false
+
+cite_packages(output = "table", pkgs = "Session", out.dir = getwd()) %>%
+  kable(
+    caption = '**Versions of R and packages used in this analysis.**'
+  )
+```
+
+# Results
+
+# Discussion
+
+# References
