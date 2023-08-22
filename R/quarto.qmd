@@ -37,6 +37,7 @@ library(kfigr)
 library(knitr)
 library(DT)
 library(grateful)
+library(patchwork)
 ```
 
 ```{r}
