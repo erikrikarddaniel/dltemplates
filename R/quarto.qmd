@@ -10,7 +10,7 @@ bibliography:
   - grateful-refs.bib
 ---
 
-```{r}
+```{r setup}
 #| label: setup
 #| echo: false
 #| cache: false
@@ -19,7 +19,7 @@ knitr::opts_chunk$set(echo = TRUE, fig.path='figures/', cache = TRUE, fig.width 
 ggplot2::theme_set(ggplot2::theme_bw())
 ```
 
-```{r}
+```{r libraries}
 #| label: libraries
 #| message: false
 #| cache: false
@@ -41,11 +41,11 @@ library(grateful)
 library(patchwork)
 ```
 
-```{r}
+```{r constants}
 #| label: constants
 ```
 
-```{r}
+```{r read-data}
 #| label: read-data
 ```
 
@@ -61,7 +61,7 @@ library(patchwork)
 
 This analysis was run with `r R.version$version.string`. Versions of packages used can be found in Table @tbl-cite-packages.
 
-```{r}
+```{r tbl-cite-packages}
 #| label: tbl-cite-packages
 #| cache: false
 #| tbl-cap: Versions of R and packages used in this analysis.
