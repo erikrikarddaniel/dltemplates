@@ -59,7 +59,7 @@ library(patchwork)
 
 ## R and packages
 
-This analysis was run with `r R.version$version.string`. Versions of packages used can be found in Table @tbl-cite-packages.
+This analysis was run with `r R.version$version.string`. Versions of packages used can be found in @tbl-cite-packages.
 
 ```{r tbl-cite-packages}
 #| label: tbl-cite-packages
