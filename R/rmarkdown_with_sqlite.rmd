@@ -45,3 +45,7 @@ db <- DBI::dbConnect(RSQLite::SQLite(), dbname = __DB_FILE__)
 ```{r db-disconnect}
 db %>% DBI::dbDisconnect()
 ```
+
+```{r}
+# vim: sw=2
+```

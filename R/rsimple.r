@@ -62,3 +62,5 @@ logmsg    = function(msg, llevel='INFO') {
 logmsg(sprintf("Reading %s", opt$inputfile))
 
 logmsg("Done")
+
+# vim: sw=2

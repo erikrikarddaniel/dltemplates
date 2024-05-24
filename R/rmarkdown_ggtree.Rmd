@@ -79,3 +79,7 @@ cite_packages(output = "table", pkgs = "Session") %>%
 # Discussion
 
 # References
+
+```{r}
+# vim: sw=2
+```

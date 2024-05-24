@@ -76,3 +76,7 @@ cite_packages(output = "table", pkgs = "Session", out.dir = getwd()) %>%
 # Discussion
 
 # References
+
+```{r}
+# vim: sw=2
+```
