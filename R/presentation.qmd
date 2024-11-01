@@ -2,9 +2,15 @@
 title: "__TITLE__"
 author: "daniel.lundin@lnu.se"
 date: "`r format(Sys.time(), '%Y-%m-%d')`"
-format: revealjs
-editor: visual
+format: 
+  revealjs:
+    embed-resources: true
 ---
+
+```{r setup, echo=F, cache = FALSE}
+knitr::opts_chunk$set(echo = FALSE, fig.path='figures/', cache = TRUE)
+ggplot2::theme_set(ggplot2::theme_bw())
+```
 
 ```{r libraries}
 #| label: libraries
