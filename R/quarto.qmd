@@ -28,6 +28,7 @@ ggplot2::theme_set(ggplot2::theme_bw())
 #| include: false
 
 library(readr)
+library(tibble)
 library(feather)
 library(data.table)
 library(dtplyr)
