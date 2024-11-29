@@ -9,6 +9,7 @@ format:
     embed-resources: true
 bibliography:
   - bibliography.bib
+  - tools.bib
   - grateful-refs.bib
 ---
 
