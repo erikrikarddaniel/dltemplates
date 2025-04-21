@@ -48,6 +48,7 @@ library(patchwork)
 
 ```{r constants}
 #| label: constants
+ORDERED_TAXRANKS <- c('domain', 'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'strain', 'subspecies')
 ```
 
 ```{r read-data}
