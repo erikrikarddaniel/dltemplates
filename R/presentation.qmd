@@ -5,6 +5,9 @@ date: "`r format(Sys.time(), '%Y-%m-%d')`"
 format: 
   revealjs:
     embed-resources: true
+bibliography:
+  - bibliography.bib
+  - tools.bib
 ---
 
 ```{r setup, echo=F, cache = FALSE}
@@ -44,3 +47,5 @@ library(patchwork)
 ```
 
 ## Slide 1
+
+## References
