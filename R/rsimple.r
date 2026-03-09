@@ -16,6 +16,11 @@ suppressPackageStartupMessages(library(stringr))
 
 SCRIPT_VERSION = "N.N"
 
+GTDB_TAXRANKS    <- c('domain', 'phylum', 'class', 'order', 'family', 'genus', 'species')
+ORDERED_TAXRANKS <- c('domain', 'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'strain', 'subspecies')
+BLAST6_COLNAMES  <- c('qseqid', 'sseqid', 'pident', 'length', 'mismatch', 'gapopen', 'qstart', 'qend', 'sstart', 'send', 'evalue', 'bitscore')
+BLAST6_COLTYPES  <- 'ccdiiiiiiidd'
+
 options(warn = 1)
 
 # Get arguments
