@@ -43,7 +43,11 @@ If the structure already exists, skip all of the above — this file is now just
 - `Makefile` (root) — currently just delegates to `data/Makefile` (`cd data; make all`).
   Extend it as the project grows.
 - `project.Rproj` — RStudio project file (`BuildType: Makefile`), so RStudio's Build pane
-  runs the root `Makefile`.
+  runs the root `Makefile`. Remind students to always open the project via this file (not
+  by opening individual scripts/documents directly) — that's what puts R's working
+  directory at the project root. `setwd()` and absolute paths in R scripts or `.qmd` files
+  should never be needed and shouldn't be added; they break as soon as the project moves or
+  someone else clones it, defeating the point of committing the `.Rproj` file at all.
 - `.screenrc` — a GNU screen layout with windows for `rstudio`, `data`, `scripts`, `man`,
   and `root`, opened automatically in the right directory. Run `screen` in the project root
   to use it (optional — nothing else depends on it).
@@ -60,6 +64,109 @@ If the structure already exists, skip all of the above — this file is now just
 - `<project-name>.qmd` — a Quarto report with a fixed section skeleton (Version history,
   Summary, Introduction, Materials and Methods, Results, Discussion, References) and a
   packages-used table. All three `.bib` files above are wired into its bibliography.
+
+## Fetching pipeline output into `data/`
+
+The raw material for these projects is normally the output of an nf-core annotation
+pipeline — `ampliseq`, `metatdenovo`, or `magmap` — run elsewhere, usually on an HPC
+cluster, never inside this repo. That output is far too large to commit, so it's fetched
+into `data/` on demand via `data/Makefile`, which RStudio's Build pane already runs (via
+`project.Rproj`'s `BuildType: Makefile` and the root `Makefile`'s `cd data; make all`).
+
+When a student wants this wired up and it isn't yet (`data/Makefile` still just says
+`all:`), help them fill it in:
+
+1. Ask which pipeline produced the data, if not already clear, and for the absolute path
+   to that run's output directory (`<outdir>`, conventionally named `results`) on the
+   remote machine.
+2. Only a subset of files in each source directory actually matters, so filter rather
+   than fetching everything — which files depends on the pipeline:
+   - `ampliseq` → the `*.tsv` files in `<outdir>/dada2`
+   - `metatdenovo` or `magmap` → the `*.tsv.gz` files in `<outdir>/summary_tables`
+   - all three, in addition → `<outdir>/pipeline_info/*software_versions*.yml`
+3. Fetch via `rsync` over `ssh`, using an `ssh` config alias rather than a raw
+   `user@host` — this is what makes the resulting `Makefile` reusable by teammates once
+   it's committed and pushed. Each person defines the *same alias name* in their own
+   `~/.ssh/config`, pointing at the same host but with their own username, so the alias
+   itself must not have a username baked into it (don't call it e.g. `alice-cluster`; a
+   short, cluster- or project-specific name works well, e.g. `anno`). Recommend a short
+   alias name to the student and confirm they're happy with it — they'll type it in every
+   fetch, and everyone else on the project will reuse the same name. Tell them where it's
+   defined: their own `~/.ssh/config` (not part of this repo, and never committed — it's
+   per-person, per-machine). If they don't already have an entry for this host, help them
+   add one:
+   ```
+   Host anno
+       HostName cluster.example.edu
+       User their_remote_username
+   ```
+4. Write (or extend) `data/Makefile` with variables for the host alias and the remote
+   `<outdir>` path, and one target per piece being fetched. In most cases it's simplest to
+   land everything straight in `data/` itself rather than recreating the remote
+   subdirectory structure locally — fetch each source into `.` (the recipes already run
+   with `data/` as the working directory), not into a same-named subdirectory. Since these
+   targets no longer produce a file/directory matching their own name, mark them
+   `.PHONY` so `make` doesn't get confused about when to (re-)run them — harmless anyway,
+   since `rsync` only re-transfers what changed. For an `ampliseq` project:
+   ```makefile
+   REMOTE_HOST   = anno
+   REMOTE_OUTDIR = /path/to/the/run/results
+
+   .PHONY: all dada2 pipeline_info
+
+   all: dada2 pipeline_info
+
+   dada2:
+   	rsync -av --include='*.tsv' --exclude='*' $(REMOTE_HOST):$(REMOTE_OUTDIR)/dada2/ .
+
+   pipeline_info:
+   	rsync -av --include='*software_versions*.yml' --exclude='*' $(REMOTE_HOST):$(REMOTE_OUTDIR)/pipeline_info/ .
+   ```
+   For `metatdenovo`/`magmap`, replace the `dada2` target with a `summary_tables` one that
+   fetches `*.tsv.gz` from `$(REMOTE_OUTDIR)/summary_tables/` the same way (i.e.
+   `--include='*.tsv.gz' --exclude='*'`). Keep the trailing slash on the remote (source)
+   side of each `rsync` — without it, rsync nests the source directory inside the
+   destination instead of copying its contents into it.
+5. Since fetched files now land directly in `data/` with whatever names the pipeline gave
+   them, per-subdirectory `.gitignore` entries no longer make sense. Instead, check whether
+   the project's `.gitignore` already ignores everything under `data/` except the tracked
+   scaffolding; if not, add:
+   ```
+   data/*
+   !data/Makefile
+   !data/.gitkeep
+   ```
+   The whole point of fetching via `Makefile` instead of committing raw output is defeated
+   if `git add .` ends up staging it anyway.
+
+## Moving heavy work out of the Quarto document
+
+Remind students that anything computationally heavy shouldn't live inline in a `.qmd` —
+it re-runs on every render, which gets slow and makes rendering flaky. Instead, it belongs
+in a standalone R script under `scripts/`, wired into `data/Makefile`'s `all` target so it
+runs once, via RStudio's Build button (the same `make` chain used for fetching data: root
+`Makefile` → `data/Makefile`), rather than every time someone knits the report. The script
+writes its result into `data/`, and the `.qmd` just reads that finished file.
+
+Two situations this comes up for a lot, worth raising proactively rather than waiting for
+the student to hit the problem:
+
+- **Consolidating taxonomies**: for each ASV (`ampliseq`) or ORF (`metatdenovo`/`magmap`),
+  several fetched files may each assign a candidate taxonomy, and something has to decide
+  which one to settle on per feature. That decision logic is exactly the kind of thing that
+  belongs in a `scripts/` script, not inline in the report.
+- **Large statistical tests**: run once and their result cached as a `data/` file, instead
+  of being recomputed on every render.
+
+As with fetched pipeline output, the result of these scripts is often too large to commit
+— the same blanket `data/*` `.gitignore` pattern from the section above already covers
+that, no extra bookkeeping needed as long as the script's output stays under `data/`.
+
+There's no settled convention yet for exactly how these scripts should be structured (input
+sources, output file naming, how granular the Makefile rules should be, whether some
+version of `misc/makefile.library`'s `.makecall` provenance-recording pattern is worth
+reusing here). Don't assume an approach — when a task like this comes up, ask the student
+(or the user) how they want to structure it before writing the script or the Makefile rule.
 
 ## Principles
 
