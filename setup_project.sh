@@ -1,11 +1,29 @@
 #!/bin/sh
 
 # Sets up a standard project directory.
+#
+# Usage: setup_project.sh [dirname]
+#
+# With a dirname argument: creates it if it doesn't exist yet (original
+# behaviour), or, if it already exists, sets up inside it as-is -- covers
+# e.g. a student who already created the directory (and may have dropped a
+# CLAUDE.md into it) before running this script.
+#
+# With no argument: sets up the current directory in place, using its
+# basename as the project name.
 
-pname=$1
-template_path=$(dirname $0)
-mkdir $pname
-cd $pname
+template_path=$(cd "$(dirname "$0")" && pwd)
+
+if [ -n "$1" ]; then
+    pname=$1
+    if [ ! -d "$pname" ]; then
+        mkdir "$pname"
+    fi
+    cd "$pname"
+else
+    pname=$(basename "$PWD")
+fi
+
 mkdir data
 touch data/.gitkeep
 mkdir scripts
