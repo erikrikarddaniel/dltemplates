@@ -7,5 +7,6 @@ screen -t ruby
 chdir $ROOT/slurm
 screen -t slurm
 chdir $ROOT
+screen -t claude
 screen -t man
 screen -t root
