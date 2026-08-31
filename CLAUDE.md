@@ -44,23 +44,40 @@ Most files are named or contain `__PLACEHOLDER__`-style tokens (e.g. `__TITLE__`
     Markdown/Quarto report templates above).
 - `.screenrc` — this repo's own screen session layout (windows for `R`, `ruby`, `slurm`,
   `claude`, `man`, `root`), separate from the `misc/screenrc` template.
-- `setup_project.sh` — scaffolds a new analysis project directory: creates `data/`,
-  `scripts/`, `figures/` (with a `.gitignore` for generated images), a `Makefile` and
-  `data/Makefile`, copies in `project.Rproj`, `misc/gitignore`, and `misc/tools.bib`,
-  renders `misc/screenrc` (substituting `__PROJNAME__` and splicing in `data`/`scripts`
-  screen windows at `__INSERTPOINT__`), copies `R/quarto.qmd` to `<projectname>.qmd`,
-  touches an empty `bibliography.bib`, and runs `git init` + `git add .`. Usage:
-  `./setup_project.sh <project_name>` (run from within the intended parent directory —
-  it `mkdir`s and `cd`s into `<project_name>` relative to the current directory).
+- `project_template/CLAUDE.md` — the single-file bootstrap for a **new** project. It's meant
+  to be copied alone into a bare/empty directory; starting a Claude Code session there and
+  asking it to set things up makes Claude `git clone --depth 1` this repo into a scratch temp
+  dir, run that clone's `setup_project.sh` with no argument to build the full scaffold in
+  place, then delete the temp clone. `setup_project.sh` also copies this file into every
+  project it scaffolds, so it doubles as that project's ongoing documentation afterward
+  (structure, GitHub remote setup, etc.) — distinct from this repo's own root `CLAUDE.md`
+  (this file), which documents *this* template repo for whoever edits templates here.
+- `setup_project.sh` — scaffolds a standard project directory, in one of three modes: given
+  a dirname that doesn't exist yet, creates and `cd`s into it; given a dirname that already
+  exists, sets up inside it as-is (e.g. a student who already created the directory); given
+  no argument, sets up the current directory in place, using its basename as the project
+  name. In every mode it creates `data/`, `scripts/`, `figures/` (with a `.gitignore` for
+  generated images), and `docs/`, a `Makefile` and `data/Makefile`, copies in
+  `project.Rproj`, `project_template/CLAUDE.md`, `misc/gitignore`, and `misc/tools.bib`,
+  renders `misc/screenrc` (substituting `__PROJNAME__` and splicing in `data`/`scripts`/`docs`
+  screen windows at `__INSERTPOINT__`), copies `R/quarto.qmd` to `<projectname>.qmd`, touches
+  an empty `bibliography.bib`, and runs `git init` + `git add .`. Usage:
+  `./setup_project.sh [project_name]`.
 
 ## Working in this repo
 
 - Changes are almost always edits to a single template file; there's no cross-file
   dependency graph to reason about beyond `setup_project.sh`'s references to
-  `R/project.Rproj`, `misc/screenrc`, `misc/gitignore`, `misc/tools.bib`, and
-  `R/quarto.qmd`, so if you rename or move any of those, update `setup_project.sh` too.
-  Same for `misc/tools.bib` / `bibliography.bib` / `grateful-refs.bib` being referenced by
-  filename in every R Markdown/Quarto template's YAML front matter.
+  `R/project.Rproj`, `project_template/CLAUDE.md`, `misc/screenrc`, `misc/gitignore`,
+  `misc/tools.bib`, and `R/quarto.qmd`, so if you rename or move any of those, update
+  `setup_project.sh` too. Same for `misc/tools.bib` / `bibliography.bib` /
+  `grateful-refs.bib` being referenced by filename in every R Markdown/Quarto template's
+  YAML front matter.
+- `project_template/CLAUDE.md` describes `setup_project.sh`'s behavior (structure created,
+  usage modes) in its own words for the benefit of a scaffolded project's users. If you
+  change what `setup_project.sh` creates or how it's invoked, update both this file and
+  `project_template/CLAUDE.md` to match — they drifted out of sync before (see git history:
+  "sync setup_project.sh with CLAUDE.md").
 - Keep the `__PLACEHOLDER__` naming convention consistent when adding new templates —
   it's the pattern `setup_project.sh` and users' own `sed` substitutions rely on.
 - There's no automated test suite; verify changes to `setup_project.sh` by actually running
