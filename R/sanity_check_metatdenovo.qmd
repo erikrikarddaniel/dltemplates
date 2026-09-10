@@ -1,0 +1,208 @@
+---
+title: "__TITLE__"
+author: "matricaria.suaveolens@gmail.com"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+format:
+  html:
+    code-fold: true
+    toc: true
+    embed-resources: true
+bibliography:
+  - bibliography.bib
+  - tools.bib
+  - grateful-refs.bib
+---
+
+```{r setup}
+#| label: setup
+#| echo: false
+#| cache: false
+
+knitr::opts_chunk$set(echo = TRUE, fig.path='figures/', cache = TRUE, fig.width = 10)
+ggplot2::theme_set(ggplot2::theme_bw())
+```
+
+```{r libraries}
+#| label: libraries
+#| message: false
+#| cache: false
+#| include: false
+
+library(readr)
+library(tibble)
+library(dplyr, warn.conflicts = FALSE)
+library(tidyr)
+library(purrr)
+library(stringr)
+library(ggplot2)
+library(RColorBrewer)
+library(vegan)
+library(kfigr)
+library(knitr)
+library(grateful)
+library(patchwork)
+```
+
+```{r source-core}
+#| label: source-core
+#| include: false
+
+# Shared rank_stats()/top_taxa()/assign_palette()/taxonomy_barplot_data() -- see that file
+# for what each does and why. Copied into scripts/ alongside this qmd; not part of the
+# default project scaffold, since not every project needs a sanity check.
+source("scripts/sanity_check_core.R")
+```
+
+```{r constants}
+#| label: constants
+GTDB_TAXRANKS    <- c('domain', 'phylum', 'class', 'order', 'family', 'genus', 'species')
+ORDERED_TAXRANKS <- c('domain', 'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'strain', 'subspecies')
+
+# metatdenovo filenames are prefixed by <assembly_name>.<orfcaller_name> (e.g.
+# "megahit.prodigal"), so reruns with different settings don't overwrite each other's
+# output. Set this to match whichever run's files are actually in data/ --
+# `Sys.glob("data/*.counts.tsv.gz")` lists what's there if it's not obvious.
+PREFIX <- "__ASSEMBLY_ORFCALLER__"
+```
+
+```{r read-data}
+#| label: read-data
+
+counts <- read_tsv(sprintf("data/%s.counts.tsv.gz", PREFIX), show_col_types = FALSE) %>%
+  mutate(sample = as.character(sample))
+
+# Taxonomy source varies by run -- prefer EUKulele when present (fixed
+# domain/phylum/.../species columns, no parsing needed); fall back to Diamond taxonomy
+# otherwise (rank column names there are whatever --diamond_taxonomy_ranks used, so check
+# the file's actual header if this project only has that one).
+eukulele_file <- Sys.glob(sprintf("data/%s.*_eukulele.tsv.gz", PREFIX))
+diamond_file  <- Sys.glob(sprintf("data/%s.*.diamond.taxonomy.tsv.gz", PREFIX))
+
+taxonomy <- if (length(eukulele_file) > 0) {
+  read_tsv(eukulele_file[1], show_col_types = FALSE)
+} else {
+  read_tsv(diamond_file[1], show_col_types = FALSE)
+}
+
+tbl_taxonomic <- counts %>%
+  left_join(taxonomy, by = "orf")
+
+# kofamscan-uniq.tsv.gz is already reduced to one row per ORF (best hit), which is what
+# makes a plain left_join safe here -- no risk of an ORF fanning out to multiple rows.
+kofam <- read_tsv(sprintf("data/%s.kofamscan-uniq.tsv.gz", PREFIX), show_col_types = FALSE)
+
+tbl_functional <- counts %>%
+  left_join(kofam %>% select(orf, ko, ko_definition), by = "orf")
+
+sample_metadata <- read_tsv("data/sample_table.tsv", show_col_types = FALSE)
+```
+
+# Version history
+
+# Summary
+
+# Introduction
+
+# Materials and Methods
+
+## R and packages
+
+This analysis was run with `r R.version$version.string`. Versions of packages used can be found in @tbl-cite-packages.
+
+```{r tbl-cite-packages}
+#| label: tbl-cite-packages
+#| cache: false
+#| tbl-cap: Versions of R and packages used in this analysis.
+
+cite_packages(output = "table", pkgs = "Session", out.dir = getwd()) %>%
+  kable()
+```
+
+# Results
+
+## Taxonomic composition
+
+```{r taxonomy-barplot}
+#| label: fig-taxonomy-barplot
+#| fig-cap: Phylum-level community composition, top taxa above 1% of TPM; `Other` includes both below-threshold and unclassified ORFs.
+
+top_phyla <- top_taxa(tbl_taxonomic, phylum, tpm, threshold = 0.01)
+phylum_pal <- assign_palette(top_phyla, variable = "phylum")
+barplot_tbl <- taxonomy_barplot_data(tbl_taxonomic, phylum, tpm, top_phyla)
+
+ggplot(barplot_tbl, aes(x = sample, y = value, fill = .display)) +
+  geom_col() +
+  scale_fill_manual(values = phylum_pal, name = "Phylum") +
+  labs(x = NULL, y = "TPM") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
+```
+
+## NMDS: taxonomic and functional
+
+NMDS is rank-based and robust to the choice of transformation, so no transformation is
+applied here -- Bray-Curtis dissimilarity, computed twice: once on family-level TPM
+(taxonomic composition, matching the barplot above) and once on KEGG-ortholog-level TPM
+(functional composition, from KOfamScan's best-hit-per-ORF table). Both exclude
+undefined/unmatched ORFs before summing (not folded into an "Other" bucket, unlike the
+barplot above), and both colour by the same `treatment` palette so the combined figure
+below can share a single legend.
+
+```{r nmds}
+#| label: fig-nmds
+#| fig-cap: NMDS of family-level TPM (left) and KEGG-ortholog-level TPM (right), Bray-Curtis, no transformation.
+#| fig-width: 14
+
+treatment_pal <- assign_palette(sort(unique(sample_metadata$treatment)), variable = "treatment", palette = "Set1")
+
+nmds_taxonomic_data <- tbl_taxonomic %>%
+  filter(!is.na(family)) %>%
+  group_by(sample, family) %>%
+  summarise(value = sum(tpm), .groups = "drop") %>%
+  pivot_wider(names_from = family, values_from = value, values_fill = 0)
+
+nmds_taxonomic_matrix <- as.matrix(select(nmds_taxonomic_data, -sample))
+rownames(nmds_taxonomic_matrix) <- nmds_taxonomic_data$sample
+
+# trace = 0 silences the per-iteration console output; ord$tries hitting trymax (default
+# 20) just means it used its full random-start budget, not that anything failed.
+ord_taxonomic <- metaMDS(nmds_taxonomic_matrix, distance = "bray", autotransform = FALSE, trace = 0)
+
+scores_taxonomic_tbl <- as.data.frame(ord_taxonomic$points) %>%
+  rownames_to_column("sample") %>%
+  left_join(sample_metadata, by = "sample")
+
+p_taxonomic <- ggplot(scores_taxonomic_tbl, aes(x = MDS1, y = MDS2, colour = treatment, shape = site)) +
+  geom_point(size = 3) +
+  scale_colour_manual(values = treatment_pal) +
+  labs(title = "Taxonomic (family)", subtitle = sprintf("stress = %.3f", ord_taxonomic$stress))
+
+nmds_functional_data <- tbl_functional %>%
+  filter(!is.na(ko)) %>%
+  group_by(sample, ko) %>%
+  summarise(value = sum(tpm), .groups = "drop") %>%
+  pivot_wider(names_from = ko, values_from = value, values_fill = 0)
+
+nmds_functional_matrix <- as.matrix(select(nmds_functional_data, -sample))
+rownames(nmds_functional_matrix) <- nmds_functional_data$sample
+
+ord_functional <- metaMDS(nmds_functional_matrix, distance = "bray", autotransform = FALSE, trace = 0)
+
+scores_functional_tbl <- as.data.frame(ord_functional$points) %>%
+  rownames_to_column("sample") %>%
+  left_join(sample_metadata, by = "sample")
+
+p_functional <- ggplot(scores_functional_tbl, aes(x = MDS1, y = MDS2, colour = treatment, shape = site)) +
+  geom_point(size = 3) +
+  scale_colour_manual(values = treatment_pal) +
+  labs(title = "Functional (KEGG ortholog)", subtitle = sprintf("stress = %.3f", ord_functional$stress))
+
+p_taxonomic + p_functional + plot_layout(guides = "collect")
+```
+
+# Discussion
+
+# References
+
+```{r}
+# vim: sw=2
+```

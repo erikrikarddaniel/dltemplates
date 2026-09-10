@@ -31,6 +31,24 @@ Most files are named or contain `__PLACEHOLDER__`-style tokens (e.g. `__TITLE__`
     `data/Makefile` pattern rule. Copied into every scaffolded project's `scripts/` by
     `setup_project.sh`, for pipeline output whose version/flags didn't already produce
     Parquet — see `project_template/CLAUDE.md`'s "Fetching pipeline output into `data/`".
+  - `sanity_check_core.R` — shared `rank_stats()`/`top_taxa()`/`assign_palette()`/
+    `taxonomy_barplot_data()` functions for the NMDS + taxonomy composition "sanity check"
+    analysis (see project_template/CLAUDE.md's own doc comment at the top of the file for
+    what each does and why, and its cross-plot palette-consistency registry). Deliberately
+    stops short of the actual `ggplot()` calls — those are meant to stay as verbatim,
+    readable chunks in whichever `sanity_check_<pipeline>.qmd` copies it in, not hidden
+    behind a plotting function. Not part of the default scaffold (unlike
+    `convert_to_parquet.R`); copied into a project's `scripts/` only when a sanity check is
+    actually being added.
+  - `sanity_check_ampliseq.qmd`, `sanity_check_magmap.qmd`, `sanity_check_metatdenovo.qmd` —
+    one "sanity check" report template per pipeline (NMDS + phylum-level composition
+    barplot; `metatdenovo`'s also has a second, functional NMDS from KOfamScan's
+    best-hit-per-ORF table, combined with the taxonomic one via `patchwork`). Each contains
+    a `read-data` chunk with that pipeline's specific file/column layout (verified against
+    each pipeline's actual source as of 2026-09 — `ampliseq` pre-3.0 has no direct relative
+    abundance, computed here from ASV counts instead) and sources `sanity_check_core.R` for
+    the shared stats/palette logic. Same section skeleton and bibliography set as the other
+    report templates above.
 - `ruby/` — Ruby CLI script skeletons using `optparse`, one plain and one
   (`ruby_w_output_format_template`) with a pluggable `FORMATS` dispatch table for
   multiple output formats.

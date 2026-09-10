@@ -213,7 +213,10 @@ When a student wants this wired up and it isn't yet (`data/Makefile` still just 
 
 1. Ask which pipeline produced the data, if not already clear, and for the absolute path
    to that run's output directory (`<outdir>`, conventionally named `results`) on the
-   remote machine.
+   remote machine. Also ask whether they have a sample table (treatment, site, time of
+   year, or whatever else distinguishes their samples) — none of these pipelines produce
+   one themselves, but it's needed to colour/shape the NMDS plot in the sanity check (see
+   below). If they have one, copy it to `data/sample_table.tsv`.
 2. Only a subset of files in each source directory actually matters, so filter rather
    than fetching everything — which files depends on the pipeline:
    - `ampliseq` → the `*.tsv` files in `<outdir>/dada2`
@@ -302,7 +305,41 @@ When a student wants this wired up and it isn't yet (`data/Makefile` still just 
    !data/.gitkeep
    ```
    The whole point of fetching via `Makefile` instead of committing raw output is defeated
-   if `git add .` ends up staging it anyway.
+   if `git add .` ends up staging it anyway. `data/sample_table.tsv` (step 1) is the
+   deliberate exception — small, hand-authored, and not reproducible by re-running
+   anything, so it belongs in git unlike the rest of `data/`. Add `!data/sample_table.tsv`
+   alongside the two exceptions above if a sample table exists.
+
+## Adding a "sanity check"
+
+When a student asks for a "sanity check" (or similar — a first-look diagnostic on their
+pipeline output), this means a specific deliverable: an NMDS ordination plus a stacked
+phylum-level taxonomy composition barplot, as a new `sanity_check.qmd`. Prerequisites:
+pipeline output already fetched into `data/` (see above, including a sample table if one
+exists — needed to colour/shape the NMDS).
+
+1. `git clone --depth 1 https://github.com/erikrikarddaniel/dltemplates <tmpdir>` into a
+   scratch/temp directory, same as the initial project bootstrap — never inside the
+   project directory, and delete it once done.
+2. Copy `<tmpdir>/R/sanity_check_<pipeline>.qmd` to `sanity_check.qmd` in the project root
+   (`<pipeline>` is `ampliseq`, `magmap`, or `metatdenovo`, matching whichever pipeline
+   step 1 of the fetching instructions above already established), and
+   `<tmpdir>/R/sanity_check_core.R` to `scripts/sanity_check_core.R` — the qmd `source()`s
+   it for the shared statistics/palette-consistency logic. Unlike `convert_to_parquet.R`,
+   this isn't part of the default scaffold, so it only exists in a project once a sanity
+   check has actually been added.
+3. Fill in the templated bits: the `__TITLE__` placeholder in the YAML header, and, for
+   `metatdenovo` specifically, the `PREFIX` constant (`__ASSEMBLY_ORFCALLER__`) in the
+   `constants` chunk — set it to match whichever `<assembly>.<orfcaller>` prefix is
+   actually on the files in `data/` (`Sys.glob("data/*.counts.tsv.gz")` shows what's
+   there if it's not obvious from context).
+4. The `read-data` chunk in each template has pipeline-specific notes worth rereading
+   before trusting it blindly — in particular, `ampliseq`'s comment about verifying
+   `ASV_table.tsv`'s header format, and `metatdenovo`'s about which taxonomy source
+   (EUKulele vs. Diamond) is actually present in this project's `data/`.
+5. These templates need `RColorBrewer`, `vegan`, and `patchwork` (`metatdenovo`'s also
+   combines two NMDS panels with `patchwork::plot_layout(guides = "collect")`) — ask
+   before installing whichever the student doesn't already have.
 
 ## Moving heavy work out of the Quarto document
 

@@ -1,0 +1,166 @@
+---
+title: "__TITLE__"
+author: "matricaria.suaveolens@gmail.com"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+format:
+  html:
+    code-fold: true
+    toc: true
+    embed-resources: true
+bibliography:
+  - bibliography.bib
+  - tools.bib
+  - grateful-refs.bib
+---
+
+```{r setup}
+#| label: setup
+#| echo: false
+#| cache: false
+
+knitr::opts_chunk$set(echo = TRUE, fig.path='figures/', cache = TRUE, fig.width = 10)
+ggplot2::theme_set(ggplot2::theme_bw())
+```
+
+```{r libraries}
+#| label: libraries
+#| message: false
+#| cache: false
+#| include: false
+
+library(readr)
+library(tibble)
+library(dplyr, warn.conflicts = FALSE)
+library(tidyr)
+library(purrr)
+library(stringr)
+library(ggplot2)
+library(RColorBrewer)
+library(vegan)
+library(kfigr)
+library(knitr)
+library(grateful)
+library(patchwork)
+```
+
+```{r source-core}
+#| label: source-core
+#| include: false
+
+# Shared rank_stats()/top_taxa()/assign_palette()/taxonomy_barplot_data() -- see that file
+# for what each does and why. Copied into scripts/ alongside this qmd; not part of the
+# default project scaffold, since not every project needs a sanity check.
+source("scripts/sanity_check_core.R")
+```
+
+```{r constants}
+#| label: constants
+GTDB_TAXRANKS    <- c('domain', 'phylum', 'class', 'order', 'family', 'genus', 'species')
+ORDERED_TAXRANKS <- c('domain', 'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'strain', 'subspecies')
+```
+
+```{r read-data}
+#| label: read-data
+
+# CDS is the default choice for community composition -- magmap.<FEATURE>.counts.tsv.gz
+# also exists per other --features (rRNA, tRNA, tmRNA by default); swap the filename below
+# if this project's question is about one of those instead.
+counts <- read_tsv("data/magmap.CDS.counts.tsv.gz", show_col_types = FALSE)
+
+# genome_metadata.tsv.gz carries GTDB-Tk's classification per genome (`accno`), independent
+# of which ORF annotator (Prokka/Bakta) was used to call the CDS features above.
+genome_metadata <- read_tsv("data/magmap.genome_metadata.tsv.gz", show_col_types = FALSE)
+
+tbl <- counts %>%
+  left_join(genome_metadata %>% select(accno, gtdb_taxonomy), by = "accno") %>%
+  separate(gtdb_taxonomy, GTDB_TAXRANKS, sep = ";", fill = "right") %>%
+  # GTDB ranks are prefixed (e.g. "p__Proteobacteria"); strip the prefix and turn a
+  # resolved-but-empty rank (e.g. "f__") into NA, same treatment as a missing accno match.
+  mutate(across(all_of(GTDB_TAXRANKS), ~ na_if(str_remove(., "^[a-z]__"), "")))
+
+sample_metadata <- read_tsv("data/sample_table.tsv", show_col_types = FALSE)
+```
+
+# Version history
+
+# Summary
+
+# Introduction
+
+# Materials and Methods
+
+## R and packages
+
+This analysis was run with `r R.version$version.string`. Versions of packages used can be found in @tbl-cite-packages.
+
+```{r tbl-cite-packages}
+#| label: tbl-cite-packages
+#| cache: false
+#| tbl-cap: Versions of R and packages used in this analysis.
+
+cite_packages(output = "table", pkgs = "Session", out.dir = getwd()) %>%
+  kable()
+```
+
+# Results
+
+## Taxonomic composition
+
+```{r taxonomy-barplot}
+#| label: fig-taxonomy-barplot
+#| fig-cap: Phylum-level community composition, top taxa above 1% of TPM; `Other` includes both below-threshold and unclassified ORFs.
+
+top_phyla <- top_taxa(tbl, phylum, tpm, threshold = 0.01)
+phylum_pal <- assign_palette(top_phyla, variable = "phylum")
+barplot_tbl <- taxonomy_barplot_data(tbl, phylum, tpm, top_phyla)
+
+ggplot(barplot_tbl, aes(x = sample, y = value, fill = .display)) +
+  geom_col() +
+  scale_fill_manual(values = phylum_pal, name = "Phylum") +
+  labs(x = NULL, y = "TPM") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
+```
+
+## NMDS
+
+NMDS is rank-based and robust to the choice of transformation, so no transformation is
+applied here -- Bray-Curtis dissimilarity on family-level TPM, with undefined
+(unclassified) ORFs excluded before summing (not folded into an "Other" bucket, unlike the
+barplot above).
+
+```{r nmds}
+#| label: fig-nmds
+#| fig-cap: NMDS of family-level TPM (Bray-Curtis, no transformation).
+
+nmds_data <- tbl %>%
+  filter(!is.na(family)) %>%
+  group_by(sample, family) %>%
+  summarise(value = sum(tpm), .groups = "drop") %>%
+  pivot_wider(names_from = family, values_from = value, values_fill = 0)
+
+nmds_matrix <- as.matrix(select(nmds_data, -sample))
+rownames(nmds_matrix) <- nmds_data$sample
+
+# trace = 0 silences the per-iteration console output; ord$tries hitting trymax (default
+# 20) just means it used its full random-start budget, not that anything failed.
+ord <- metaMDS(nmds_matrix, distance = "bray", autotransform = FALSE, trace = 0)
+
+scores_tbl <- as.data.frame(ord$points) %>%
+  rownames_to_column("sample") %>%
+  left_join(sample_metadata, by = "sample")
+
+treatment_pal <- assign_palette(sort(unique(sample_metadata$treatment)), variable = "treatment", palette = "Set1")
+
+ggplot(scores_tbl, aes(x = MDS1, y = MDS2, colour = treatment, shape = site)) +
+  geom_point(size = 3) +
+  scale_colour_manual(values = treatment_pal) +
+  labs(title = sprintf("NMDS, stress = %.3f", ord$stress))
+```
+
+# Discussion
+
+# References
+
+```{r}
+# vim: sw=2
+```

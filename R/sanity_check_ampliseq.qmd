@@ -1,0 +1,174 @@
+---
+title: "__TITLE__"
+author: "matricaria.suaveolens@gmail.com"
+date: "`r format(Sys.time(), '%Y-%m-%d')`"
+format:
+  html:
+    code-fold: true
+    toc: true
+    embed-resources: true
+bibliography:
+  - bibliography.bib
+  - tools.bib
+  - grateful-refs.bib
+---
+
+```{r setup}
+#| label: setup
+#| echo: false
+#| cache: false
+
+knitr::opts_chunk$set(echo = TRUE, fig.path='figures/', cache = TRUE, fig.width = 10)
+ggplot2::theme_set(ggplot2::theme_bw())
+```
+
+```{r libraries}
+#| label: libraries
+#| message: false
+#| cache: false
+#| include: false
+
+library(readr)
+library(tibble)
+library(dplyr, warn.conflicts = FALSE)
+library(tidyr)
+library(purrr)
+library(stringr)
+library(ggplot2)
+library(RColorBrewer)
+library(vegan)
+library(kfigr)
+library(knitr)
+library(grateful)
+library(patchwork)
+```
+
+```{r source-core}
+#| label: source-core
+#| include: false
+
+# Shared rank_stats()/top_taxa()/assign_palette()/taxonomy_barplot_data() -- see that file
+# for what each does and why. Copied into scripts/ alongside this qmd; not part of the
+# default project scaffold, since not every project needs a sanity check.
+source("scripts/sanity_check_core.R")
+```
+
+```{r constants}
+#| label: constants
+GTDB_TAXRANKS    <- c('domain', 'phylum', 'class', 'order', 'family', 'genus', 'species')
+ORDERED_TAXRANKS <- c('domain', 'kingdom', 'phylum', 'class', 'order', 'family', 'genus', 'species', 'strain', 'subspecies')
+```
+
+```{r read-data}
+#| label: read-data
+
+# ampliseq doesn't hand you relative abundance directly (pre-3.0), so it's computed here
+# from raw ASV counts, per sample, *before* the taxonomy join below -- this is what makes
+# "keep the pre-removal relab for undefined taxa" work without extra bookkeeping: the
+# denominator already includes every ASV, classified or not.
+#
+# NOTE: verify the header of ASV_table.tsv against your actual file (`head -2
+# data/ASV_table.tsv`) before trusting this as-is -- some ampliseq export paths prefix a
+# leading "# ..." banner line before the real header (QIIME/biom convention); if that's
+# the case here, add `skip = 1` to the read_tsv() call below.
+asv_counts <- read_tsv("data/ASV_table.tsv", show_col_types = FALSE)
+names(asv_counts)[1] <- "ASV_ID"
+
+# ASV_tax.<database>.tsv -- database name varies by run, hence the glob. Rank columns
+# (Kingdom/Phylum/.../Genus) are DADA2's own assignTaxonomy() output names, capitalized,
+# regardless of which reference database was used.
+asv_tax <- read_tsv(Sys.glob("data/ASV_tax.*.tsv")[1], show_col_types = FALSE)
+
+tbl <- asv_counts %>%
+  pivot_longer(-ASV_ID, names_to = "sample", values_to = "count") %>%
+  group_by(sample) %>%
+  mutate(relab = count / sum(count)) %>%
+  ungroup() %>%
+  left_join(asv_tax %>% select(-sequence), by = "ASV_ID")
+
+sample_metadata <- read_tsv("data/sample_table.tsv", show_col_types = FALSE)
+```
+
+# Version history
+
+# Summary
+
+# Introduction
+
+# Materials and Methods
+
+## R and packages
+
+This analysis was run with `r R.version$version.string`. Versions of packages used can be found in @tbl-cite-packages.
+
+```{r tbl-cite-packages}
+#| label: tbl-cite-packages
+#| cache: false
+#| tbl-cap: Versions of R and packages used in this analysis.
+
+cite_packages(output = "table", pkgs = "Session", out.dir = getwd()) %>%
+  kable()
+```
+
+# Results
+
+## Taxonomic composition
+
+```{r taxonomy-barplot}
+#| label: fig-taxonomy-barplot
+#| fig-cap: Phylum-level community composition, top taxa above 1% relative abundance; `Other` includes both below-threshold and unclassified ASVs.
+
+top_phyla <- top_taxa(tbl, Phylum, relab, threshold = 0.01)
+phylum_pal <- assign_palette(top_phyla, variable = "Phylum")
+barplot_tbl <- taxonomy_barplot_data(tbl, Phylum, relab, top_phyla)
+
+ggplot(barplot_tbl, aes(x = sample, y = value, fill = .display)) +
+  geom_col() +
+  scale_fill_manual(values = phylum_pal, name = "Phylum") +
+  labs(x = NULL, y = "Relative abundance") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
+```
+
+## NMDS
+
+NMDS is rank-based and robust to the choice of transformation, so no transformation is
+applied here -- Bray-Curtis dissimilarity on family-level relative abundance, with
+undefined (unclassified) ASVs excluded before summing (not folded into an "Other" bucket,
+unlike the barplot above).
+
+```{r nmds}
+#| label: fig-nmds
+#| fig-cap: NMDS of family-level relative abundance (Bray-Curtis, no transformation).
+
+nmds_data <- tbl %>%
+  filter(!is.na(Family)) %>%
+  group_by(sample, Family) %>%
+  summarise(value = sum(relab), .groups = "drop") %>%
+  pivot_wider(names_from = Family, values_from = value, values_fill = 0)
+
+nmds_matrix <- as.matrix(select(nmds_data, -sample))
+rownames(nmds_matrix) <- nmds_data$sample
+
+# trace = 0 silences the per-iteration console output; ord$tries hitting trymax (default
+# 20) just means it used its full random-start budget, not that anything failed.
+ord <- metaMDS(nmds_matrix, distance = "bray", autotransform = FALSE, trace = 0)
+
+scores_tbl <- as.data.frame(ord$points) %>%
+  rownames_to_column("sample") %>%
+  left_join(sample_metadata, by = "sample")
+
+treatment_pal <- assign_palette(sort(unique(sample_metadata$treatment)), variable = "treatment", palette = "Set1")
+
+ggplot(scores_tbl, aes(x = MDS1, y = MDS2, colour = treatment, shape = site)) +
+  geom_point(size = 3) +
+  scale_colour_manual(values = treatment_pal) +
+  labs(title = sprintf("NMDS, stress = %.3f", ord$stress))
+```
+
+# Discussion
+
+# References
+
+```{r}
+# vim: sw=2
+```
