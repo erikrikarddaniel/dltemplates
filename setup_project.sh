@@ -20,6 +20,11 @@ if [ -n "$1" ]; then
         mkdir "$pname"
     fi
     cd "$pname"
+    # Reduce to the basename: a path-like argument (e.g. a/b/myproj) would otherwise
+    # leak into the screen session name (breaking the sed below, which uses / as its
+    # delimiter) and into the .qmd filename below (which is written relative to the
+    # now-current project directory, not the original argument).
+    pname=$(basename "$pname")
 else
     pname=$(basename "$PWD")
 fi
@@ -28,6 +33,7 @@ mkdir data
 touch data/.gitkeep
 mkdir scripts
 touch scripts/.gitkeep
+cp $template_path/R/convert_to_parquet.R scripts/
 mkdir figures
 echo '*.png' >> figures/.gitignore
 echo '*.pdf' >> figures/.gitignore
