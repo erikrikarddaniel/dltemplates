@@ -221,7 +221,13 @@ When a student wants this wired up and it isn't yet (`data/Makefile` still just 
    than fetching everything — which files depends on the pipeline:
    - `ampliseq` → the `*.tsv` files in `<outdir>/dada2`
    - `metatdenovo` or `magmap` → the `*.tsv.gz` files in `<outdir>/summary_tables`
-   - all three, in addition → `<outdir>/pipeline_info/*software_versions*.yml`
+   - all three, in addition → `<outdir>/pipeline_info/*versions*.yml`.
+     Don't narrow this to `*software_versions*.yml`.
+     The exact filename order isn't consistent across pipelines — confirmed
+     `nf_core_metatdenovo_software_mqc_versions.yml` on a real metatdenovo run
+     (2026-09-10), where "mqc" sits between "software" and "versions" and a
+     `*software_versions*` glob matches nothing.
+     `*versions*.yml` matches that and any other ordering.
    Also check whether the run has Parquet copies of the summary tables alongside the
    TSVs — support is new and differs across these three pipelines (checked 2026-09), so
    don't assume from the pipeline name alone:
@@ -273,7 +279,7 @@ When a student wants this wired up and it isn't yet (`data/Makefile` still just 
    	rsync -av --include='*.tsv' --exclude='*' $(REMOTE_HOST):$(REMOTE_OUTDIR)/dada2/ .
 
    pipeline_info:
-   	rsync -av --include='*software_versions*.yml' --exclude='*' $(REMOTE_HOST):$(REMOTE_OUTDIR)/pipeline_info/ .
+   	rsync -av --include='*versions*.yml' --exclude='*' $(REMOTE_HOST):$(REMOTE_OUTDIR)/pipeline_info/ .
    ```
    For `metatdenovo`/`magmap`, replace the `dada2` target with a `summary_tables` one that
    fetches `*.tsv.gz` from `$(REMOTE_OUTDIR)/summary_tables/` the same way (i.e.
@@ -298,20 +304,57 @@ When a student wants this wired up and it isn't yet (`data/Makefile` still just 
      %.parquet: %.tsv
      	Rscript ../scripts/convert_to_parquet.R $< $@
      ```
-     **A pattern rule alone does nothing** — confirmed the hard way, this is exactly what
-     produced no Parquet output on a real test run. `make` only applies a pattern rule to
-     build a target something else actually asks for, so list every fetched table's
-     `.parquet` filename by name as a prerequisite of `all` (extending the example above):
-     ```makefile
-     all: dada2 pipeline_info ASV_table.parquet ASV_tax.<database>.parquet
+     **A pattern rule alone does nothing** — `make` only applies a pattern rule to build a
+     target something else actually asks for, so list every fetched table's `.parquet`
+     filename by name, rather than reaching for `$(wildcard *.tsv.gz)`/`$(patsubst ...)` to
+     generate that list automatically: `make` expands `$(wildcard ...)` once, when it first
+     reads the Makefile — before the `dada2`/`summary_tables` recipe has fetched anything
+     into a fresh `data/` — so it would see no `.tsv`/`.tsv.gz` files yet and silently
+     produce an empty list.
+     A hardcoded list is also more readable for someone new to `make`.
+
+     **Do not list the `.parquet` files directly as prerequisites of `all`, even
+     hardcoded — that still fails outright on a genuinely fresh `data/`.**
+     Confirmed the hard way (metatdenovo output, 2026-09-10), on the very first `make all`
+     run against an empty `data/`: GNU Make resolves a pattern rule's prerequisite (here,
+     whether `foo.tsv.gz` exists, to satisfy `%.parquet: %.tsv.gz` for `foo.parquet`) via a
+     `stat()` done once, the first time it considers that `.parquet` target while walking
+     `all`'s prerequisite list — and that happens in the same left-to-right pass as `all`'s
+     other prerequisites, before the fetch recipe that actually creates `foo.tsv.gz` has
+     run.
+     The result is a hard, deterministic error, not a silent no-op like the `$(wildcard
+     ...)` case above:
      ```
-     Don't reach for `$(wildcard *.tsv.gz)`/`$(patsubst ...)` to generate that list
-     automatically instead of hardcoding it: `make` expands `$(wildcard ...)` once, when
-     it first reads the Makefile — before the `dada2`/`summary_tables` recipe has fetched
-     anything into a fresh `data/` — so it would see no `.tsv`/`.tsv.gz` files yet and
-     silently produce an empty list. A second `make all` run would then work, since the
-     files exist by then, but that's a confusing trap for a student to hit rather than a
-     real fix — and a hardcoded list is more readable for someone new to `make` anyway.
+     make: *** No rule to make target 'foo.parquet', needed by 'all'.  Stop.
+     ```
+     A second `make all` then succeeds, because by then the `.tsv.gz` files already exist
+     from the first (partially-failed) run — easy to mistake for a one-off fluke rather
+     than the reproducible GNU Make behavior it actually is.
+     The fix: fetch first, then hand the Parquet conversions to a fresh sub-`make` — a new
+     `make` process re-`stat()`s the filesystem from scratch, after the fetch recipes have
+     already run:
+     ```makefile
+     .PHONY: all fetch parquet dada2 pipeline_info
+
+     all: fetch
+     	$(MAKE) parquet
+
+     fetch: dada2 pipeline_info
+
+     parquet: ASV_table.parquet ASV_tax.<database>.parquet
+
+     dada2:
+     	rsync -av --include='*.tsv' --exclude='*' $(REMOTE_HOST):$(REMOTE_OUTDIR)/dada2/ .
+
+     pipeline_info:
+     	rsync -av --include='*versions*.yml' --exclude='*' $(REMOTE_HOST):$(REMOTE_OUTDIR)/pipeline_info/ .
+
+     %.parquet: %.tsv.gz
+     	Rscript ../scripts/convert_to_parquet.R $< $@
+
+     %.parquet: %.tsv
+     	Rscript ../scripts/convert_to_parquet.R $< $@
+     ```
      It needs the `arrow` and `readr` R packages — ask the student before installing
      `arrow` if it isn't already there (`readr` is core tidyverse, usually already
      present).
