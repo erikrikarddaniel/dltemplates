@@ -33,8 +33,9 @@ library(tibble)
 #library(feather)
 #library(data.table)
 #library(dtplyr)
+#library(duckplyr)
 library(dplyr, warn.conflicts = FALSE)
-library(logrittr) # install.packages('logrittr', repos = 'https://guillaumepressiat.r-universe.dev'); see https://guillaumepressiat.github.io/blog/2026/04/logrittr
+#library(logrittr) # install.packages('logrittr', repos = 'https://guillaumepressiat.r-universe.dev'); see https://guillaumepressiat.github.io/blog/2026/04/logrittr
 library(tidyr)
 library(purrr)
 library(stringr)
