@@ -23,7 +23,7 @@ It will also copy a `CLAUDE.md` that contains instructions for Claude.
 
 If you run Claude Code, it knows a bit about the directory structure, so you can instruct it to e.g. "Setup Makefiles to fetch data from
 my metatdenovo run. Files are here: `ssh-name:/path/to/metatdenovo/results/summary_tables`".
-It might ask you to create an aliash for the `ssh-name` so you don't have to use the long form `user@machine.domain.se` and make sure
+It might ask you to create an alias for the `ssh-name` so you don't have to use the long form `user@machine.domain.se` and make sure
 that the name used can be used by other users of your analysis repo.
 You can also ask it to: "Add a sanity check to the qmd".
 
