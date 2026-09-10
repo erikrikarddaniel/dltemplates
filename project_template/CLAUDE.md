@@ -340,6 +340,11 @@ exists — needed to colour/shape the NMDS).
 5. These templates need `RColorBrewer`, `vegan`, and `patchwork` (`metatdenovo`'s also
    combines two NMDS panels with `patchwork::plot_layout(guides = "collect")`) — ask
    before installing whichever the student doesn't already have.
+6. Once it's built and rendering, ask the student whether you should walk them through the
+   code and how it's set up (the `sanity_check_core.R` functions, the loader, why NMDS
+   uses no transformation, the palette-consistency mechanism, etc.) — don't launch into an
+   unprompted explanation, but do offer, since this is exactly the kind of code a student
+   is expected to understand and eventually extend themselves, not just run.
 
 ## Moving heavy work out of the Quarto document
 
