@@ -211,12 +211,13 @@ into `data/` on demand via `data/Makefile`, which RStudio's Build pane already r
 When a student wants this wired up and it isn't yet (`data/Makefile` still just says
 `all:`), help them fill it in:
 
-1. Ask which pipeline produced the data, if not already clear, and for the absolute path
-   to that run's output directory (`<outdir>`, conventionally named `results`) on the
-   remote machine. Also ask whether they have a sample table (treatment, site, time of
-   year, or whatever else distinguishes their samples) — none of these pipelines produce
-   one themselves, but it's needed to colour/shape the NMDS plot in the sanity check (see
-   below). If they have one, copy it to `data/sample_table.tsv`.
+1. Ask which pipeline produced the data, if not already clear, for the absolute path to
+   that run's output directory (`<outdir>`, conventionally named `results`), and whether
+   that path is on **this same machine** or a **remote** one (e.g. an HPC cluster) — this
+   decides the fetch mechanism in step 3 below. Also ask whether they have a sample table
+   (treatment, site, time of year, or whatever else distinguishes their samples) — none of
+   these pipelines produce one themselves, but it's needed to colour/shape the NMDS plot in
+   the sanity check (see below). If they have one, copy it to `data/sample_table.tsv`.
 2. Only a subset of files in each source directory actually matters, so filter rather
    than fetching everything — which files depends on the pipeline:
    - `ampliseq` → the `*.tsv` files in `<outdir>/dada2`
@@ -372,6 +373,30 @@ When a student wants this wired up and it isn't yet (`data/Makefile` still just 
    deliberate exception — small, hand-authored, and not reproducible by re-running
    anything, so it belongs in git unlike the rest of `data/`. Add `!data/sample_table.tsv`
    alongside the two exceptions above if a sample table exists.
+
+### Same-machine source: symlink instead of steps 3-6
+
+If step 1 established the pipeline's output directory is on **this same machine** rather
+than a remote one, skip steps 3-6 above entirely and do this instead — no `ssh` alias, no
+`rsync`, no `Makefile` fetch target:
+
+1. Symlink the same files step 2 identified straight into `data/`, e.g. for `ampliseq`:
+   `ln -s <outdir>/dada2/*.tsv data/` (and `ln -s <outdir>/pipeline_info/*versions*.yml
+   data/`); for `metatdenovo`/`magmap`, symlink `<outdir>/summary_tables/*.tsv.gz` instead.
+   If Parquet files already exist alongside (step 2), symlink those too instead of (or
+   next to) the TSVs; if not, the same `scripts/convert_to_parquet.R` fallback from step 5
+   above still applies — it works fine against a symlinked source, `read_tsv()` and
+   friends follow symlinks transparently.
+2. **Commit the symlinks directly** rather than gitignoring `data/*` — a symlink is just a
+   short path string, not the actual data, so there's nothing to protect against
+   accidentally committing (unlike step 6's rsync-fetched files). Simpler than steps 4/6's
+   `Makefile`-target-plus-gitignore-exception dance, and sidesteps the whole class of
+   `make` pattern-rule ordering bugs steps 3-5 had to work around.
+3. **Tell the student clearly that this makes the project only usable on this machine** —
+   the symlinks point at an absolute path that won't exist anywhere else, so they'll be
+   dangling (broken) if this repo is ever cloned onto a different computer. If they think
+   they'll need to work on this project from elsewhere later, use the remote `rsync`
+   approach (steps 3-6) instead, even though the source happens to be local right now.
 
 ## Adding a "sanity check"
 

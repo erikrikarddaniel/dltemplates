@@ -41,6 +41,11 @@ that the name used can be used by other users of your analysis repo.
 Claude will probably also fetch the data using `make`, but when you switch to a different computer and want to fetch the data, go to the 
 "Build" tab in Rstudio and press "Build All", or run from the command line (root directory of the project): `make all`.
 
+If you are working in the same computer as the data exists in, you can instead tell Claude to create symbolic links to the data: "Can
+you create symbolic links to my metatdenovo data in `/path/to/results_directory`". Note that this only works on this particular
+computer -- the links point at an absolute path here, so they'll be broken if you (or a colleague) clone this project onto a different
+machine. Use the `make`-based fetch above instead if you'll need to work on this project from elsewhere.
+
 You can also ask it to: "Add a sanity check to the qmd".
 
 *If you don't want to clone the repo yourself* and run Claude Code, you can just fetch the `project_template/CLAUDE.md` file (shown below
