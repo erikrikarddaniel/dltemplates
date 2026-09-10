@@ -37,6 +37,10 @@ my metatdenovo run. Files are here: `<ssh-alias>:/path/to/metatdenovo/results/su
 you use for that machine in your own `~/.ssh/config` (or the full `user@machine.domain.se` if you don't have one set up yet).
 It might ask you to create such an alias so you don't have to use the long form `user@machine.domain.se`, and make sure
 that the name used can be used by other users of your analysis repo.
+
+Claude will probably also fetch the data using `make`, but when you switch to a different computer and want to fetch the data, go to the 
+"Build" tab in Rstudio and press "Build All", or run from the command line (root directory of the project): `make all`.
+
 You can also ask it to: "Add a sanity check to the qmd".
 
 *If you don't want to clone the repo yourself* and run Claude Code, you can just fetch the `project_template/CLAUDE.md` file (shown below
