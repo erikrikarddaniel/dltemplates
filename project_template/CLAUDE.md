@@ -287,11 +287,31 @@ When a student wants this wired up and it isn't yet (`data/Makefile` still just 
    - **They don't exist**: every project already has `scripts/convert_to_parquet.R`
      (scaffolded by `setup_project.sh`, no need to write it) — a generic one-file-in,
      one-file-out converter meant to be called once per table from a `data/Makefile`
-     pattern rule, e.g.:
+     pattern rule. Two pattern rules are needed, one per source extension actually being
+     fetched — `ampliseq`'s `dada2/*.tsv` is uncompressed, `metatdenovo`/`magmap`'s
+     `summary_tables/*.tsv.gz` isn't, and a rule for one extension silently won't match
+     the other:
      ```makefile
      %.parquet: %.tsv.gz
      	Rscript ../scripts/convert_to_parquet.R $< $@
+
+     %.parquet: %.tsv
+     	Rscript ../scripts/convert_to_parquet.R $< $@
      ```
+     **A pattern rule alone does nothing** — confirmed the hard way, this is exactly what
+     produced no Parquet output on a real test run. `make` only applies a pattern rule to
+     build a target something else actually asks for, so list every fetched table's
+     `.parquet` filename by name as a prerequisite of `all` (extending the example above):
+     ```makefile
+     all: dada2 pipeline_info ASV_table.parquet ASV_tax.<database>.parquet
+     ```
+     Don't reach for `$(wildcard *.tsv.gz)`/`$(patsubst ...)` to generate that list
+     automatically instead of hardcoding it: `make` expands `$(wildcard ...)` once, when
+     it first reads the Makefile — before the `dada2`/`summary_tables` recipe has fetched
+     anything into a fresh `data/` — so it would see no `.tsv`/`.tsv.gz` files yet and
+     silently produce an empty list. A second `make all` run would then work, since the
+     files exist by then, but that's a confusing trap for a student to hit rather than a
+     real fix — and a hardcoded list is more readable for someone new to `make` anyway.
      It needs the `arrow` and `readr` R packages — ask the student before installing
      `arrow` if it isn't already there (`readr` is core tidyverse, usually already
      present).
