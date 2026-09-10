@@ -124,7 +124,7 @@ cite_packages(output = "table", pkgs = "Session", out.dir = getwd()) %>%
 
 ```{r taxonomy-barplot}
 #| label: fig-taxonomy-barplot
-#| fig-cap: Phylum-level community composition, top taxa above 1% of TPM; `Other` includes both below-threshold and unclassified ORFs.
+#| fig-cap: Phylum-level community composition, top taxa above 1% of TPM; `Other` is below-threshold classified ORFs, `Unassigned` is ORFs with no phylum classification.
 
 top_phyla <- top_taxa(tbl_taxonomic, phylum, tpm, threshold = 0.01)
 phylum_pal <- assign_palette(top_phyla, variable = "phylum")

@@ -409,6 +409,23 @@ exists — needed to colour/shape the NMDS).
    unprompted explanation, but do offer, since this is exactly the kind of code a student
    is expected to understand and eventually extend themselves, not just run.
 
+The taxonomy barplot's non-top taxa always split into two separate stacked categories,
+`Other` and `Unassigned`, rather than one combined bucket — `taxonomy_barplot_data()` in
+`sanity_check_core.R` does this automatically, no per-project wiring needed.
+`Unassigned` is features (ASVs/ORFs) with no classification at all at that rank (`NA`) — a
+statement about classification coverage/reference-database recall.
+`Other` is features that *are* classified, just individually below `threshold` — a
+statement about true community diversity (many genuine low-abundance taxa).
+Conflating the two into one "Other" bucket (an earlier version of this function did) hides
+which of those two very different explanations actually dominates a sample, which matters
+for a sanity check specifically: a mostly-`Unassigned` bar points at a reference-database
+or classification-pipeline problem worth investigating, while a mostly-`Other` bar just
+reflects a genuinely diverse community and is often unremarkable.
+Confirmed worth the split on real data (remedios_non-polyA_overview, metatdenovo,
+2026-09-10): the combined bucket ran 50-70% of TPM per sample, opaque as to why; keep an
+eye out for the same pattern recurring on other real runs once this has been used a few
+more times.
+
 ## Moving heavy work out of the Quarto document
 
 Remind students that anything computationally heavy shouldn't live inline in a `.qmd` —

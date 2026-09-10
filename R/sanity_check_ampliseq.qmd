@@ -116,7 +116,7 @@ cite_packages(output = "table", pkgs = "Session", out.dir = getwd()) %>%
 
 ```{r taxonomy-barplot}
 #| label: fig-taxonomy-barplot
-#| fig-cap: Phylum-level community composition, top taxa above 1% relative abundance; `Other` includes both below-threshold and unclassified ASVs.
+#| fig-cap: Phylum-level community composition, top taxa above 1% relative abundance; `Other` is below-threshold classified ASVs, `Unassigned` is ASVs with no phylum classification.
 
 top_phyla <- top_taxa(tbl, Phylum, relab, threshold = 0.01)
 phylum_pal <- assign_palette(top_phyla, variable = "Phylum")

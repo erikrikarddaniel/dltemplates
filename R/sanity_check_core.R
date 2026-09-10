@@ -52,11 +52,17 @@ top_taxa <- function(tbl, rank, value, stat = c("sum", "mean", "max"), threshold
 .palette_registry <- new.env(parent = emptyenv())
 
 # Named vector mapping each of `taxa` (in the order given -- pass top_taxa()'s output
-# directly to keep plot/legend order) to a colour, plus `other` to `other_colour`. Falls
-# back to the Polychrome package for >12 taxa, since Brewer palettes top out at 12
-# genuinely distinguishable colours; if Polychrome isn't installed, warns and repeats
-# Brewer colours instead of failing outright.
-assign_palette <- function(taxa, variable, palette = "Paired", other = "Other", other_colour = "grey70") {
+# directly to keep plot/legend order) to a colour, plus `other` to `other_colour` and
+# `unassigned` to `unassigned_colour`. Falls back to the Polychrome package for >12 taxa,
+# since Brewer palettes top out at 12 genuinely distinguishable colours; if Polychrome
+# isn't installed, warns and repeats Brewer colours instead of failing outright.
+#
+# The `other`/`unassigned` pair is only meaningful for a taxonomy_barplot_data() palette
+# (see below) -- calling this for a non-taxonomic variable (e.g. a `station` NMDS colour)
+# just carries two unused named entries, harmless since scale_*_manual() only draws a
+# legend for levels actually present in the data being plotted.
+assign_palette <- function(taxa, variable, palette = "Paired", other = "Other", other_colour = "grey70",
+                            unassigned = "Unassigned", unassigned_colour = "grey40") {
   n <- length(taxa)
 
   claimed_by <- .palette_registry[[palette]]
@@ -80,16 +86,21 @@ assign_palette <- function(taxa, variable, palette = "Paired", other = "Other", 
     rep_len(brewer.pal(12, palette), n)
   }
 
-  setNames(c(colours, other_colour), c(taxa, other))
+  setNames(c(colours, other_colour, unassigned_colour), c(taxa, other, unassigned))
 }
 
 # Aggregated, ggplot-ready table for a stacked taxonomy barplot: one row per (sample,
-# taxon-or-`other`), `.display` a factor ordered to match `top` (typically top_taxa()'s
-# output) so a manually-built palette keyed the same way lines up directly. Taxa not in
-# `top` -- including NA/unclassified `rank` values, since `%in%` treats NA as "not in the
-# set" -- are folded into `other`. `value` is never renormalized after that folding, so
-# `other`'s share in the resulting table reflects the true unclassified/below-threshold
-# proportion of the original data, not just of what's plotted.
+# taxon-or-`other`-or-`unassigned`), `.display` a factor ordered to match `top` (typically
+# top_taxa()'s output) so a manually-built palette keyed the same way lines up directly.
+# Taxa not in `top` split into two buckets, kept separate rather than folded into one
+# "Other" as earlier versions of this function did -- they answer different questions
+# about the data, and conflating them hides which one actually dominates:
+#   - `unassigned`: `rank` is NA, i.e. the feature (ASV/ORF) was never classified at this
+#     rank at all -- a statement about classification coverage/reference-database recall.
+#   - `other`: `rank` is a real, classified value, just below `threshold` -- a statement
+#     about true community diversity/evenness (many genuine low-abundance taxa).
+# `value` is never renormalized after this split, so each bucket's share in the resulting
+# table reflects its true proportion of the original data, not just of what's plotted.
 #
 # Typical use in the qmd -- top/palette built once and reused, the ggplot() call itself
 # left as a verbatim chunk rather than wrapped in a function:
@@ -104,12 +115,16 @@ assign_palette <- function(taxa, variable, palette = "Paired", other = "Other", 
 #     labs(x = NULL, y = NULL) +
 #     theme_minimal() +
 #     theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
-taxonomy_barplot_data <- function(tbl, rank, value, top, other = "Other") {
+taxonomy_barplot_data <- function(tbl, rank, value, top, other = "Other", unassigned = "Unassigned") {
   tbl %>%
-    mutate(.display = if_else(!is.na({{ rank }}) & {{ rank }} %in% top, as.character({{ rank }}), other)) %>%
+    mutate(.display = case_when(
+      is.na({{ rank }}) ~ unassigned,
+      {{ rank }} %in% top ~ as.character({{ rank }}),
+      TRUE ~ other
+    )) %>%
     group_by(sample, .display) %>%
     summarise(value = sum({{ value }}, na.rm = TRUE), .groups = "drop") %>%
-    mutate(.display = factor(.display, levels = c(top, other)))
+    mutate(.display = factor(.display, levels = c(top, other, unassigned)))
 }
 
 # vim: sw=2
