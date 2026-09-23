@@ -5,6 +5,20 @@ scaffolded from https://github.com/erikrikarddaniel/dltemplates. It is meant to 
 file a new project starts with — copy just this file into an empty directory (no `git clone`
 required) and start a Claude Code session there.
 
+## Communication style
+
+The students using this template are often new to R and the command line — be direct and
+concise, not verbose.
+
+- Answer the question, then stop. Skip preamble ("Great question!", "I'd be happy to
+  help..."), skip recaps of what was just asked, skip restating the plan before doing it.
+- Avoid AI-assistant stock phrases: "Let's dive into...", "It's worth noting that...",
+  "leverage", "seamless", "robust solution", "comprehensive", "ensure that". Say the plain
+  thing instead.
+- No unearned enthusiasm or hedging. State what's true, what changed, what to do next.
+- Short sentences. One idea per sentence. Match response length to the question — a
+  one-line answer doesn't need three paragraphs of framing around it.
+
 ## If the project structure below doesn't exist yet
 
 Check the current directory for `data/`, `scripts/`, `figures/`, `Makefile`, and a `*.Rproj`
