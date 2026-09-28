@@ -4,4 +4,5 @@ setenv ROOT $PWD
 chdir $ROOT
 screen -t rstudio
 screen -t man
+screen -t claude
 screen -t root

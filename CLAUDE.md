@@ -26,6 +26,29 @@ Most files are named or contain `__PLACEHOLDER__`-style tokens (e.g. `__TITLE__`
     `tools.bib` + `grateful-refs.bib` bibliography set.
   - `project.Rproj` — RStudio project file (`BuildType: Makefile`), copied into new projects
     by `setup_project.sh`.
+  - `convert_to_parquet.R` — generic one-file-in/one-file-out TSV(.gz)-to-Parquet converter
+    (two positional args: infile, outfile), meant to be called once per table from a
+    `data/Makefile` pattern rule. Copied into every scaffolded project's `scripts/` by
+    `setup_project.sh`, for pipeline output whose version/flags didn't already produce
+    Parquet — see `project_template/CLAUDE.md`'s "Fetching pipeline output into `data/`".
+  - `sanity_check_core.R` — shared `rank_stats()`/`top_taxa()`/`assign_palette()`/
+    `taxonomy_barplot_data()` functions for the NMDS + taxonomy composition "sanity check"
+    analysis (see project_template/CLAUDE.md's own doc comment at the top of the file for
+    what each does and why, and its cross-plot palette-consistency registry). Deliberately
+    stops short of the actual `ggplot()` calls — those are meant to stay as verbatim,
+    readable chunks in whichever `sanity_check_<pipeline>.qmd` copies it in, not hidden
+    behind a plotting function. Not part of the default scaffold (unlike
+    `convert_to_parquet.R`); copied into a project's `scripts/` only when a sanity check is
+    actually being added.
+  - `sanity_check_ampliseq.qmd`, `sanity_check_magmap.qmd`, `sanity_check_metatdenovo.qmd` —
+    one "sanity check" report template per pipeline (NMDS + phylum-level composition
+    barplot; `metatdenovo`'s also has a second, functional NMDS from KOfamScan's
+    best-hit-per-ORF table, combined with the taxonomic one via `patchwork`). Each contains
+    a `read-data` chunk with that pipeline's specific file/column layout (verified against
+    each pipeline's actual source as of 2026-09 — `ampliseq` pre-3.0 has no direct relative
+    abundance, computed here from ASV counts instead) and sources `sanity_check_core.R` for
+    the shared stats/palette logic. Same section skeleton and bibliography set as the other
+    report templates above.
 - `ruby/` — Ruby CLI script skeletons using `optparse`, one plain and one
   (`ruby_w_output_format_template`) with a pluggable `FORMATS` dispatch table for
   multiple output formats.
@@ -56,10 +79,11 @@ Most files are named or contain `__PLACEHOLDER__`-style tokens (e.g. `__TITLE__`
   a dirname that doesn't exist yet, creates and `cd`s into it; given a dirname that already
   exists, sets up inside it as-is (e.g. a student who already created the directory); given
   no argument, sets up the current directory in place, using its basename as the project
-  name. In every mode it creates `data/`, `scripts/`, `figures/` (with a `.gitignore` for
-  generated images), and `docs/`, a `Makefile` and `data/Makefile`, copies in
-  `project.Rproj`, `project_template/CLAUDE.md`, `misc/gitignore`, and `misc/tools.bib`,
-  renders `misc/screenrc` (substituting `__PROJNAME__` and splicing in `data`/`scripts`/`docs`
+  name. In every mode it creates `data/`, `scripts/` (pre-populated with
+  `convert_to_parquet.R`), `figures/` (with a `.gitignore` for generated images), and
+  `docs/`, a `Makefile` and `data/Makefile`, copies in `project.Rproj`,
+  `project_template/CLAUDE.md`, `misc/gitignore`, and `misc/tools.bib`, renders
+  `misc/screenrc` (substituting `__PROJNAME__` and splicing in `data`/`scripts`/`docs`
   screen windows at `__INSERTPOINT__`), copies `R/quarto.qmd` to `<projectname>.qmd`, touches
   an empty `bibliography.bib`, and runs `git init` + `git add .`. Usage:
   `./setup_project.sh [project_name]`.
@@ -68,11 +92,11 @@ Most files are named or contain `__PLACEHOLDER__`-style tokens (e.g. `__TITLE__`
 
 - Changes are almost always edits to a single template file; there's no cross-file
   dependency graph to reason about beyond `setup_project.sh`'s references to
-  `R/project.Rproj`, `project_template/CLAUDE.md`, `misc/screenrc`, `misc/gitignore`,
-  `misc/tools.bib`, and `R/quarto.qmd`, so if you rename or move any of those, update
-  `setup_project.sh` too. Same for `misc/tools.bib` / `bibliography.bib` /
-  `grateful-refs.bib` being referenced by filename in every R Markdown/Quarto template's
-  YAML front matter.
+  `R/project.Rproj`, `R/convert_to_parquet.R`, `project_template/CLAUDE.md`,
+  `misc/screenrc`, `misc/gitignore`, `misc/tools.bib`, and `R/quarto.qmd`, so if you rename
+  or move any of those, update `setup_project.sh` too. Same for `misc/tools.bib` /
+  `bibliography.bib` / `grateful-refs.bib` being referenced by filename in every R
+  Markdown/Quarto template's YAML front matter.
 - `project_template/CLAUDE.md` describes `setup_project.sh`'s behavior (structure created,
   usage modes) in its own words for the benefit of a scaffolded project's users. If you
   change what `setup_project.sh` creates or how it's invoked, update both this file and

@@ -16,16 +16,14 @@ bibliography:
 ```{r setup}
 #| label: setup
 #| echo: false
-#| cache: false
 
-knitr::opts_chunk$set(echo = TRUE, fig.path='figures/', cache = TRUE, fig.width = 10)
+knitr::opts_chunk$set(echo = TRUE, fig.path='figures/', fig.width = 10)
 ggplot2::theme_set(ggplot2::theme_bw())
 ```
 
 ```{r libraries}
 #| label: libraries
 #| message: false
-#| cache: false
 #| include: false
 
 library(readr)
@@ -33,8 +31,9 @@ library(tibble)
 #library(feather)
 #library(data.table)
 #library(dtplyr)
+#library(duckplyr)
 library(dplyr, warn.conflicts = FALSE)
-library(logrittr) # install.packages('logrittr', repos = 'https://guillaumepressiat.r-universe.dev'); see https://guillaumepressiat.github.io/blog/2026/04/logrittr
+#library(logrittr) # install.packages('logrittr', repos = 'https://guillaumepressiat.r-universe.dev'); see https://guillaumepressiat.github.io/blog/2026/04/logrittr
 library(tidyr)
 library(purrr)
 library(stringr)
@@ -73,7 +72,6 @@ This analysis was run with `r R.version$version.string`. Versions of packages us
 
 ```{r tbl-cite-packages}
 #| label: tbl-cite-packages
-#| cache: false
 #| tbl-cap: Versions of R and packages used in this analysis.
 
 cite_packages(output = "table", pkgs = "Session", out.dir = getwd()) %>%
