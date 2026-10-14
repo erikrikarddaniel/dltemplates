@@ -94,6 +94,9 @@ If the marker is missing or more than 30 days old, ask once whether you may chec
 Don't check without a yes, and don't interrupt a task already under way to ask.
 The student can also ask for the check at any time.
 
+On a student's own branch (see "Working on your own branch"), skip this check and don't edit this file.
+The supervisor runs it on `main`, and the changes arrive with the merge from `main`.
+
 On a no, set the marker to today's date, so you don't ask again for 30 days.
 On a yes:
 
@@ -239,6 +242,77 @@ prompting cleanly. Two ways around it, in order of preference:
 
 Avoid a manually-pasted Personal Access Token unless neither of the above is available —
 tokens expire and need scopes configured, which is more to explain than either option here.
+
+## Working on your own branch
+
+In a supervised project the student works on a branch of their own, and the supervisor merges it into `main` after reviewing it, for instance before a meeting.
+This section applies when that is the case.
+The aim is that the student never has to resolve a merge conflict or touch `main`.
+
+At the start of a session, run `git branch --show-current`.
+If it is a branch other than `main` or `master`, follow the rules below.
+If it is `main` or `master` and the project has a remote, ask once whether the student works under a supervisor who merges their work.
+On a yes, ask for a short branch name (their first name in lower case is fine), run `git switch -c <name>`, and push it with `git push -u origin <name>` after confirming with the student.
+On a no, carry on on `main` and skip this section for the rest of the session.
+
+Rules on the student's branch:
+
+- Never commit to, push to or merge into `main`.
+  The supervisor does that.
+- Never force-push, rebase or otherwise rewrite commits that are already pushed.
+- Commit when a piece of work is finished and at the end of every session.
+  Write the message as one or two sentences saying what was done and why, because the supervisor reads them.
+  Push the branch after committing, and before a meeting with the supervisor.
+  Ask once per session for permission to commit and push to the branch; a yes covers the rest of that session.
+- Don't edit this file, and skip the template check in "Keeping this file up to date".
+  The supervisor does that on `main`, and the changes arrive with the merge below.
+  Notes specific to the student's work go in `NOTES.md`.
+
+Bringing in changes from `main`, at the start of a session before the first task:
+
+1. Run `git status`.
+   If there are uncommitted changes, offer to commit them first, because a merge needs a clean working tree.
+2. Run `git pull`, then `git fetch origin`, then `git merge origin/<main>`, where `<main>` is whichever of `main` or `master` exists on the remote.
+3. If nothing new came in, say nothing.
+   Otherwise tell the student in a sentence or two what changed (`git diff --stat ORIG_HEAD HEAD`).
+4. If there are conflicts, resolve them yourself; don't ask the student to.
+   For files the supervisor maintains (this file, `scripts/`, the `Makefile`s, `.gitignore`), take the version from `main`, unless the student has made a deliberate edit, in which case combine the two.
+   For the student's own analysis files, keep the student's work and add the changes from `main` around it.
+   Then check that no markers are left (`grep -rn '^<<<<<<<\|^>>>>>>>' .`), check that the project still runs where that is cheap, and commit with the default merge message.
+   Tell the student briefly which files conflicted and how you resolved them.
+5. If you can't resolve a conflict with confidence, for example because two edits contradict each other in meaning, run `git merge --abort`.
+   Tell the student that their work is untouched, that the supervisor needs to look at this, and what the conflict is.
+   Carry on working on the branch without the merge.
+
+## Reviewing a student branch
+
+Do this only when the supervisor asks for it, for instance before a meeting.
+It is written for the supervisor's session; a student's session does not review its own branch.
+The branch is `origin/<branch>` and `<main>` is whichever of `main` or `master` the project uses.
+
+1. Make sure the working tree is clean, then `git fetch origin`, `git switch <main>` and `git pull`.
+2. Get an overview: `git log --oneline --no-merges <main>..origin/<branch>` and `git diff --stat <main>...origin/<branch>`.
+3. Read the full diff (`git diff <main>...origin/<branch>`) for research soundness, not only for code errors.
+   Check in particular:
+   - Are all samples in the metadata accounted for, and is every exclusion stated and justified?
+   - Are filters, thresholds and transformations stated in Materials and Methods with a reason?
+   - Do the pipeline version and the database in the text match the data that was fetched?
+   - Are the statistical choices (distance, transformation, rarefaction, correction for multiple tests) appropriate for the question?
+   - Are the claims in the Discussion supported by the figures, and no stronger than the data allow?
+   - Has anything been committed that shouldn't be: data files, credentials, large outputs, `.Rhistory`?
+   - Were files the supervisor maintains edited (this file, scripts copied from the templates, the `Makefile`s)?
+   - Are tools and databases cited from `tools.bib`?
+4. Render the report from the branch.
+   Try the merge without committing it: `git merge --no-commit --no-ff origin/<branch>`, render, then `git merge --abort` unless the supervisor wants to go ahead.
+   If the data isn't available locally, say so and review from the diff alone.
+5. Report to the supervisor in order of importance: must fix before merging, questions for the student, minor points.
+   Keep what was checked by running apart from what was only read, and state what couldn't be checked.
+   If the supervisor wants to send feedback to the student, draft it as a short text for them to send; don't contact the student yourself.
+6. Merge only when the supervisor says so, and not while must-fix points remain unless they say to anyway.
+   Use `git merge --no-ff origin/<branch>`, with a message that names the student and what the merge brings.
+   Resolve any conflict yourself and show the supervisor the resolution before committing.
+   Push `<main>` only after confirming with the supervisor.
+   The student needs to do nothing, because the merge reaches their branch at the start of their next session.
 
 ## Chatting with Claude inside RStudio (`chattr`)
 

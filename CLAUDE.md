@@ -111,6 +111,9 @@ Most files are named or contain `__PLACEHOLDER__`-style tokens (e.g. `__TITLE__`
   or so (section "Keeping this file up to date"), so edits here reach existing projects only
   once a student agrees to that check. Keep the section and the marker format in `setup_project.sh`
   in sync, and don't rename `project_template/CLAUDE.md` without updating that section's clone path.
+- `project_template/CLAUDE.md` also holds the supervised-branch workflow ("Working on your own branch", "Reviewing a student branch").
+  Students work on a long-lived branch that the supervisor merges into `main`, and the template sync check runs only on `main`.
+  Keep those sections consistent with "Keeping this file up to date".
 - Keep the `__PLACEHOLDER__` naming convention consistent when adding new templates —
   it's the pattern `setup_project.sh` and users' own `sed` substitutions rely on.
 - There's no automated test suite; verify changes to `setup_project.sh` by actually running
