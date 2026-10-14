@@ -22,6 +22,8 @@ if ( length(args) != 2 ) {
 infile  = args[1]
 outfile = args[2]
 
-write_parquet(read_tsv(infile, show_col_types = FALSE), outfile)
+# Keep numeric-looking sample names (e.g. "001") as text so they match the sample table.
+col_types = if ("sample" %in% names(read_tsv(infile, n_max = 0, show_col_types = FALSE))) cols(sample = col_character())
+write_parquet(read_tsv(infile, col_types = col_types, show_col_types = FALSE), outfile)
 
 # vim: sw=2

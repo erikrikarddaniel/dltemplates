@@ -29,12 +29,14 @@ ggplot2::theme_set(ggplot2::theme_bw())
 library(readr)
 library(tibble)
 library(dplyr, warn.conflicts = FALSE)
+library(duckplyr)
 library(tidyr)
 library(purrr)
 library(stringr)
 library(ggplot2)
 library(RColorBrewer)
 library(vegan)
+library(ecolongr)
 library(kfigr)
 library(knitr)
 library(grateful)
@@ -60,31 +62,57 @@ ORDERED_TAXRANKS <- c('domain', 'kingdom', 'phylum', 'class', 'order', 'family',
 ```{r read-data}
 #| label: read-data
 
-# ampliseq doesn't hand you relative abundance directly (pre-3.0), so it's computed here
-# from raw ASV counts, per sample, *before* the taxonomy join below -- this is what makes
-# "keep the pre-removal relab for undefined taxa" work without extra bookkeeping: the
-# denominator already includes every ASV, classified or not.
+# prudence = "stingy" makes duckplyr stop with an error, instead of silently loading the
+# whole table into R, when a verb can't run inside DuckDB. Reading, joining, filtering and
+# summing below stay lazy; only small summaries are collected.
 #
-# NOTE: verify the header of ASV_table.tsv against your actual file (`head -2
-# data/ASV_table.tsv`) before trusting this as-is -- some ampliseq export paths prefix a
-# leading "# ..." banner line before the real header (QIIME/biom convention); if that's
-# the case here, add `skip = 1` to the read_tsv() call below.
-asv_counts <- read_tsv("data/ASV_table.tsv", show_col_types = FALSE)
-names(asv_counts)[1] <- "ASV_ID"
+# Both branches below end with the same two tables, with lower-case column names: asv_counts
+# (asv_id, sample, count; zero counts dropped) and asv_tax (asv_id, phylum, family, ...).
+#
+# ampliseq 3.0+ writes both as long tables in summary_tables/. Counts are DADA2's raw output,
+# from before clustering and any filters, so ASVs that a filter removed have counts but no
+# taxonomy row; they end up as `Unassigned` below. There is one taxonomy table per
+# classifier and database (ampliseq.taxonomy.<CLASSIFIER>.<database>.parquet). This picks the
+# consolidated DADA2 table if there is one, otherwise the first DADA2 table in alphabetical
+# order; set tax_file by hand to use a different one. Check its header (`phylum` and
+# `family` must be there).
+if (file.exists("data/ampliseq.counts.parquet")) {
+  asv_counts <- read_parquet_duckdb("data/ampliseq.counts.parquet", prudence = "stingy")
 
-# ASV_tax.<database>.tsv -- database name varies by run, hence the glob. Rank columns
-# (Kingdom/Phylum/.../Genus) are DADA2's own assignTaxonomy() output names, capitalized,
-# regardless of which reference database was used.
-asv_tax <- read_tsv(Sys.glob("data/ASV_tax.*.tsv")[1], show_col_types = FALSE)
+  tax_files <- Sys.glob("data/ampliseq.taxonomy.DADA2.*.parquet")
+  tax_file  <- c(grep("consolidated", tax_files, value = TRUE), tax_files)[1]
+  asv_tax   <- read_parquet_duckdb(tax_file, prudence = "stingy")
+} else {
+  # Before 3.0, ASV_table is wide (one column per sample). The UNPIVOT query reshapes it to
+  # the long form inside DuckDB, without building the wide table in R, and drops zero counts.
+  #
+  # NOTE: verify the header of ASV_table.tsv against your actual file (`head -2
+  # data/ASV_table.tsv`) before trusting this as-is -- the query assumes the first column is
+  # named ASV_ID. Some ampliseq export paths prefix a leading "# ..." banner line before the
+  # real header (QIIME/biom convention); if that's the case here, delete that line from the TSV
+  # and re-run `make` in data/.
+  asv_counts <- read_sql_duckdb(
+    "SELECT ASV_ID AS asv_id, sample, count FROM (
+       UNPIVOT read_parquet('data/ASV_table.parquet')
+       ON COLUMNS(* EXCLUDE ASV_ID) INTO NAME sample VALUE count
+     ) WHERE count > 0",
+    prudence = "stingy"
+  )
 
+  # ASV_tax.<database>.parquet -- database name varies by run, hence the glob. Rank columns
+  # are DADA2's own assignTaxonomy() output names, capitalized; renamed here to match 3.0.
+  asv_tax <- read_parquet_duckdb(Sys.glob("data/ASV_tax.*.parquet")[1], prudence = "stingy") %>%
+    select(asv_id = ASV_ID, phylum = Phylum, family = Family)
+}
+
+# Relative abundance is computed from the raw counts, per sample, *before* the taxonomy join
+# -- this is what makes "keep the pre-removal relab for undefined taxa" work without extra
+# bookkeeping: the denominator already includes every ASV, classified or not.
 tbl <- asv_counts %>%
-  pivot_longer(-ASV_ID, names_to = "sample", values_to = "count") %>%
-  group_by(sample) %>%
-  mutate(relab = count / sum(count)) %>%
-  ungroup() %>%
-  left_join(asv_tax %>% select(-sequence), by = "ASV_ID")
+  mutate(relab = count / sum(count, na.rm = TRUE), .by = sample) %>%
+  left_join(asv_tax, by = "asv_id")
 
-sample_metadata <- read_tsv("data/sample_table.tsv", show_col_types = FALSE)
+sample_metadata <- read_tsv("data/sample_table.tsv", col_types = cols(sample = col_character()))
 ```
 
 # Version history
@@ -115,9 +143,9 @@ cite_packages(output = "table", pkgs = "Session", out.dir = getwd()) %>%
 #| label: fig-taxonomy-barplot
 #| fig-cap: Phylum-level community composition, top taxa above 1% relative abundance; `Other` is below-threshold classified ASVs, `Unassigned` is ASVs with no phylum classification.
 
-top_phyla <- top_taxa(tbl, Phylum, relab, threshold = 0.01)
-phylum_pal <- assign_palette(top_phyla, variable = "Phylum")
-barplot_tbl <- taxonomy_barplot_data(tbl, Phylum, relab, top_phyla)
+top_phyla <- top_taxa(tbl, phylum, relab, threshold = 0.01)
+phylum_pal <- assign_palette(top_phyla, variable = "phylum")
+barplot_tbl <- taxonomy_barplot_data(tbl, phylum, relab, top_phyla)
 
 ggplot(barplot_tbl, aes(x = sample, y = value, fill = .display)) +
   geom_col() +
@@ -131,24 +159,23 @@ ggplot(barplot_tbl, aes(x = sample, y = value, fill = .display)) +
 NMDS is rank-based and robust to the choice of transformation, so no transformation is
 applied here -- Bray-Curtis dissimilarity on family-level relative abundance, with
 undefined (unclassified) ASVs excluded before summing (not folded into an "Other" bucket,
-unlike the barplot above).
+unlike the barplot above). The distances come from `ecolongr::el_vegdist()`, which works
+directly on the long table (one row per sample and taxon) without building the
+samples-by-taxa matrix, and are then passed to `vegan::metaMDS()`.
 
 ```{r nmds}
 #| label: fig-nmds
 #| fig-cap: NMDS of family-level relative abundance (Bray-Curtis, no transformation).
 
-nmds_data <- tbl %>%
-  filter(!is.na(Family)) %>%
-  group_by(sample, Family) %>%
-  summarise(value = sum(relab), .groups = "drop") %>%
-  pivot_wider(names_from = Family, values_from = value, values_fill = 0)
-
-nmds_matrix <- as.matrix(select(nmds_data, -sample))
-rownames(nmds_matrix) <- nmds_data$sample
+d <- tbl %>%
+  filter(!is.na(family)) %>%
+  summarise(quant = sum(relab, na.rm = TRUE), .by = c(sample, family)) %>%
+  transmute(sample, taxon = family, quant) %>%
+  el_vegdist("bray")
 
 # trace = 0 silences the per-iteration console output; ord$tries hitting trymax (default
 # 20) just means it used its full random-start budget, not that anything failed.
-ord <- metaMDS(nmds_matrix, distance = "bray", autotransform = FALSE, trace = 0)
+ord <- metaMDS(d, trace = 0)
 
 scores_tbl <- as.data.frame(ord$points) %>%
   rownames_to_column("sample") %>%

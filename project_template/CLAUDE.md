@@ -83,6 +83,34 @@ user's first commit.
 
 If the structure already exists, skip all of the above — this file is now just documentation.
 
+## Keeping this file up to date
+
+The template this file came from, `project_template/CLAUDE.md` in dltemplates, changes over time.
+The last line of this file records when it was last compared with the template, as an HTML comment: `<!-- dltemplates sync: checked YYYY-MM-DD -->`.
+`setup_project.sh` writes it when it creates the project.
+
+At the start of a session, before the first task, run `tail -1 CLAUDE.md`.
+If the marker is missing or more than 30 days old, ask once whether you may check for an updated template.
+Don't check without a yes, and don't interrupt a task already under way to ask.
+The student can also ask for the check at any time.
+
+On a no, set the marker to today's date, so you don't ask again for 30 days.
+On a yes:
+
+1. `git clone --depth 1 https://github.com/erikrikarddaniel/dltemplates <tmpdir>` into a scratch/temp directory, never inside the project, and delete it when done.
+2. `diff -u -I 'dltemplates sync' CLAUDE.md <tmpdir>/project_template/CLAUDE.md` (the `-I` skips the marker line).
+3. Sort the differences.
+   Text only in the template is a candidate update.
+   Text only here is the student's own addition or a project-specific note: keep it.
+   A passage changed on both sides is a conflict: show both versions and let the student choose.
+4. Tell the student in plain, short terms what changed in the template, and ask which changes to apply, or all.
+   Apply them as edits to this file.
+   Never replace this file with the template's copy; that would delete the student's additions.
+5. If the new instructions rely on a file the project lacks (for example a script under `scripts/` that the template's `setup_project.sh` now copies), say so and offer to copy it from `<tmpdir>/R/`.
+   Don't overwrite a file the student has edited.
+6. Set the marker to today's date, delete the clone, and offer to commit the change.
+   Commit only if the student agrees.
+
 ## Project structure
 
 - `data/` — raw/intermediate data, built via `data/Makefile`. Nothing here is meant to be
@@ -270,7 +298,14 @@ When a student wants this wired up and it isn't yet (`data/Makefile` still just 
    the sanity check (see below). If they have one, copy it to `data/sample_table.tsv`.
 2. Only a subset of files in each source directory actually matters, so filter rather
    than fetching everything — which files depends on the pipeline:
-   - `ampliseq` → the `*.tsv` files in `<outdir>/dada2`
+   - `ampliseq` 3.0 and later (released 2026-10-09) → the `ampliseq.*` files in
+     `<outdir>/summary_tables`: `ampliseq.counts.*` (long table: `asv_id`, `sample`,
+     `count`) and `ampliseq.taxonomy.<CLASSIFIER>.<database>.*` (one per classifier and
+     database; lower-case rank columns).
+     Look for them first: `ls <outdir>/summary_tables/ampliseq.counts.*`.
+     The counts table is only written with `--asv_calling dada2`.
+   - `ampliseq` before 3.0, or without `summary_tables/ampliseq.counts.*` → the `*.tsv`
+     files in `<outdir>/dada2`
    - `metatdenovo` or `magmap` → the `*.tsv.gz` files in `<outdir>/summary_tables`
    - all three, in addition → `<outdir>/pipeline_info/*versions*.yml`.
      Don't narrow this to `*software_versions*.yml`.
@@ -279,21 +314,24 @@ When a student wants this wired up and it isn't yet (`data/Makefile` still just 
      (2026-09-10), where "mqc" sits between "software" and "versions" and a
      `*software_versions*` glob matches nothing.
      `*versions*.yml` matches that and any other ordering.
-   Also check whether the run has Parquet copies of the summary tables alongside the
-   TSVs — support is new and differs across these three pipelines (checked 2026-09), so
+   Also look for Parquet copies of the summary tables alongside the TSVs, and use them if
+   they exist.
+   The analysis templates read Parquet (see "Working with Parquet tables in R" below),
+   because it is faster to read and DuckDB loads only what a query needs.
+   If there are none, offer to build them (step 5); don't build them without asking.
+   Support is new and differs across these three pipelines (checked 2026-09), so
    don't assume from the pipeline name alone:
    - `magmap` (v1.2.0+, 2026-08-11): opt-in via `--save_parquet`; when used, every
      `summary_tables/*.tsv.gz` file gets a same-named `*.parquet` sibling.
-   - `ampliseq`: Parquet support (`summary_tables/ampliseq.counts.parquet`, on by default,
-     opt-out via `--skip_parquet_summary`) exists only on the `dev` branch so far — not yet
-     in a release, so no run made with a released version will have it.
+   - `ampliseq` (3.0.0+, released 2026-10-09): every `summary_tables/ampliseq.*.tsv.gz`
+     has a `.parquet` twin, on by default, opt-out via `--skip_parquet_summary`.
+     Runs made with a version before 3.0 have neither.
    - `metatdenovo`: not implemented yet (tracked as nf-core/metatdenovo#473) — no run will
      have Parquet output.
    The reliable check is the run's actual output directory, not the pipeline/version in
-   the abstract: `ssh <alias> "ls <outdir>/summary_tables/*.parquet 2>/dev/null"` (use the
-   `dada2` subdirectory instead for `ampliseq`). If you can't check yet — e.g. the `ssh`
+   the abstract: `ssh <alias> "ls <outdir>/summary_tables/*.parquet 2>/dev/null"`. If you can't check yet — e.g. the `ssh`
    alias isn't set up until step 3 below — ask the student whether they think there are
-   Parquet files to fetch.
+   Parquet files to fetch, and check again once the alias works.
 3. Fetch via `rsync` over `ssh`, using an `ssh` config alias rather than a raw
    `user@host` — this is what makes the resulting `Makefile` reusable by teammates once
    it's committed and pushed. Each person defines the *same alias name* in their own
@@ -317,7 +355,8 @@ When a student wants this wired up and it isn't yet (`data/Makefile` still just 
    with `data/` as the working directory), not into a same-named subdirectory. Since these
    targets no longer produce a file/directory matching their own name, mark them
    `.PHONY` so `make` doesn't get confused about when to (re-)run them — harmless anyway,
-   since `rsync` only re-transfers what changed. For an `ampliseq` project:
+   since `rsync` only re-transfers what changed. For an `ampliseq` project from before 3.0
+   (3.0 and later use `summary_tables`, like `metatdenovo`/`magmap` below):
    ```makefile
    REMOTE_HOST   = anno
    REMOTE_OUTDIR = /path/to/the/run/results
@@ -332,16 +371,23 @@ When a student wants this wired up and it isn't yet (`data/Makefile` still just 
    pipeline_info:
    	rsync -av --include='*versions*.yml' --exclude='*' $(REMOTE_HOST):$(REMOTE_OUTDIR)/pipeline_info/ .
    ```
-   For `metatdenovo`/`magmap`, replace the `dada2` target with a `summary_tables` one that
-   fetches `*.tsv.gz` from `$(REMOTE_OUTDIR)/summary_tables/` the same way (i.e.
+   For `metatdenovo`/`magmap`/`ampliseq` 3.0+, replace the `dada2` target with a
+   `summary_tables` one that fetches `*.tsv.gz` from `$(REMOTE_OUTDIR)/summary_tables/` the same way (i.e.
    `--include='*.tsv.gz' --exclude='*'`). Keep the trailing slash on the remote (source)
    side of each `rsync` — without it, rsync nests the source directory inside the
    destination instead of copying its contents into it.
 5. Wire in the Parquet files, one of two ways depending on what step 2 found:
    - **They already exist remotely**: add them to the same `rsync` target (or a sibling
      one) with `--include='*.parquet'`, and prefer reading the Parquet copies over the
-     TSVs in the `.qmd` once fetched — same data, smaller and faster to load.
-   - **They don't exist**: every project already has `scripts/convert_to_parquet.R`
+     TSVs in the `.qmd` once fetched (the templates need only the Parquet files, so the
+     `.tsv.gz` twins can be left out of the fetch) — same data, smaller and faster to load.
+   - **They don't exist**: offer to build them after each download, and say why (the
+     analysis templates read Parquet, which is faster and keeps the table out of R's
+     memory).
+     Wait for a yes before wiring anything in.
+     If the student declines, the templates' `read-data` chunks must be rewritten to
+     `read_tsv()`, which loads whole tables into memory; tell them that.
+     On a yes: every project already has `scripts/convert_to_parquet.R`
      (scaffolded by `setup_project.sh`, no need to write it) — a generic one-file-in,
      one-file-out converter meant to be called once per table from a `data/Makefile`
      pattern rule. Two pattern rules are needed, one per source extension actually being
@@ -409,6 +455,7 @@ When a student wants this wired up and it isn't yet (`data/Makefile` still just 
      It needs the `arrow` and `readr` R packages — ask the student before installing
      `arrow` if it isn't already there (`readr` is core tidyverse, usually already
      present).
+     Reading the result needs `duckplyr`; ask before installing that too.
 6. Since fetched files now land directly in `data/` with whatever names the pipeline gave
    them, per-subdirectory `.gitignore` entries no longer make sense. Instead, check whether
    the project's `.gitignore` already ignores everything under `data/` except the tracked
@@ -430,13 +477,18 @@ If step 1 established the pipeline's output directory is on **this same machine*
 than a remote one, skip steps 3-6 above entirely and do this instead — no `ssh` alias, no
 `rsync`, no `Makefile` fetch target:
 
-1. Symlink the same files step 2 identified straight into `data/`, e.g. for `ampliseq`:
+1. Symlink the same files step 2 identified straight into `data/`, e.g. for `ampliseq` before 3.0:
    `ln -s <outdir>/dada2/*.tsv data/` (and `ln -s <outdir>/pipeline_info/*versions*.yml
-   data/`); for `metatdenovo`/`magmap`, symlink `<outdir>/summary_tables/*.tsv.gz` instead.
-   If Parquet files already exist alongside (step 2), symlink those too instead of (or
-   next to) the TSVs; if not, the same `scripts/convert_to_parquet.R` fallback from step 5
-   above still applies — it works fine against a symlinked source, `read_tsv()` and
-   friends follow symlinks transparently.
+   data/`); for `metatdenovo`/`magmap`/`ampliseq` 3.0+, symlink
+   `<outdir>/summary_tables/*.tsv.gz` instead.
+   Look for Parquet files alongside the TSVs (`ls <outdir>/summary_tables/*.parquet`).
+   If they exist, symlink them too and use them.
+   If not, offer to build them with `scripts/convert_to_parquet.R`, as in step 5 above
+   (ask first, with the same explanation).
+   It works fine against a symlinked source: `read_tsv()` and friends follow symlinks
+   transparently.
+   The converted `.parquet` files are generated, not symlinks, so list them by name in
+   `.gitignore`.
 2. **Commit the symlinks directly** rather than gitignoring `data/*` — a symlink is just a
    short path string, not the actual data, so there's nothing to protect against
    accidentally committing (unlike step 6's rsync-fetched files). Simpler than steps 4/6's
@@ -453,8 +505,10 @@ than a remote one, skip steps 3-6 above entirely and do this instead — no `ssh
 When a student asks for a "sanity check" (or similar — a first-look diagnostic on their
 pipeline output), this means a specific deliverable: an NMDS ordination plus a stacked
 phylum-level taxonomy composition barplot, as a new `sanity_check.qmd`. Prerequisites:
-pipeline output already fetched into `data/` (see above, including a sample table if one
-exists — needed to colour/shape the NMDS).
+pipeline output already fetched into `data/` as Parquet files (see above, including a sample
+table if one exists — needed to colour/shape the NMDS).
+If `data/` has only TSVs, go back to step 5 of the fetching instructions and offer to
+convert them first; the templates read Parquet only.
 
 1. `git clone --depth 1 https://github.com/erikrikarddaniel/dltemplates <tmpdir>` into a
    scratch/temp directory, same as the initial project bootstrap — never inside the
@@ -469,15 +523,28 @@ exists — needed to colour/shape the NMDS).
 3. Fill in the templated bits: the `__TITLE__` placeholder in the YAML header, and, for
    `metatdenovo` specifically, the `PREFIX` constant (`__ASSEMBLY_ORFCALLER__`) in the
    `constants` chunk — set it to match whichever `<assembly>.<orfcaller>` prefix is
-   actually on the files in `data/` (`Sys.glob("data/*.counts.tsv.gz")` shows what's
+   actually on the files in `data/` (`Sys.glob("data/*.counts.parquet")` shows what's
    there if it's not obvious from context).
 4. The `read-data` chunk in each template has pipeline-specific notes worth rereading
-   before trusting it blindly — in particular, `ampliseq`'s comment about verifying
-   `ASV_table.tsv`'s header format, and `metatdenovo`'s about which taxonomy source
+   before trusting it blindly — in particular, `ampliseq`'s choice of taxonomy table (the
+   consolidated DADA2 table if present, otherwise the first DADA2 one; with several
+   databases the student may want a different one) and, for runs before 3.0, its comment
+   about verifying `ASV_table.tsv`'s header format, and `metatdenovo`'s about which taxonomy source
    (EUKulele vs. Diamond) is actually present in this project's `data/`.
-5. These templates need `RColorBrewer`, `vegan`, and `patchwork` (`metatdenovo`'s also
-   combines two NMDS panels with `patchwork::plot_layout(guides = "collect")`) — ask
-   before installing whichever the student doesn't already have.
+5. These templates need `RColorBrewer`, `vegan`, `patchwork` (`metatdenovo`'s also
+   combines two NMDS panels with `patchwork::plot_layout(guides = "collect")`),
+   `duckplyr` and `ecolongr` — ask before installing whichever the student doesn't
+   already have.
+   `ecolongr` is not on CRAN and needs a C++ compiler:
+   `remotes::install_github("biodiversitydata-se/ecolongr")` (install `remotes` first if
+   it is missing).
+   The NMDS chunks use `ecolongr::el_vegdist()` to compute Bray-Curtis distances straight
+   from the long table, without building the samples-by-taxa matrix `vegan` would need,
+   and pass the result to `vegan::metaMDS()`.
+   The `ampliseq` template reads the 3.0 `ampliseq.counts.parquet` and
+   `ampliseq.taxonomy.DADA2.*.parquet` when they exist.
+   For older runs it falls back to unpivoting the wide `ASV_table.parquet` to a long table
+   inside DuckDB.
 6. Once it's built and rendering, ask the student whether you should walk them through the
    code and how it's set up (the `sanity_check_core.R` functions, the loader, why NMDS
    uses no transformation, the palette-consistency mechanism, etc.) — don't launch into an
@@ -500,6 +567,27 @@ Confirmed worth the split on real data (remedios_non-polyA_overview, metatdenovo
 2026-09-10): the combined bucket ran 50-70% of TPM per sample, opaque as to why; keep an
 eye out for the same pattern recurring on other real runs once this has been used a few
 more times.
+
+## Working with Parquet tables in R
+
+Read Parquet with `duckplyr`, not `arrow` or `read_tsv()`, so the table stays on disk until a result is needed:
+
+```r
+library(duckplyr)
+counts <- read_parquet_duckdb("data/<name>.parquet", prudence = "stingy")
+```
+
+`prudence = "stingy"` makes `duckplyr` stop with an error when a verb can't run in DuckDB, instead of silently loading the whole table into R.
+Keep the table lazy and `collect()` only small summaries.
+When writing or editing analysis code for these tables:
+
+- Use `.by`, not `group_by()`: `summarise(x = sum(y, na.rm = TRUE), .by = c(sample, taxon))`.
+  `mutate(.by = )` works too; `filter(.by = )` does not, and neither does `group_by()` followed by `summarise()`.
+- Give `sum()` and `mean()` `na.rm = TRUE`; inside `mutate(.by = )`, `duckplyr` can't translate them without it.
+- Not translatable (checked with `duckplyr` 1.2.1, so test before relying on a newer one): `as.character()`, `case_when()`, `ifelse()` (`if_else()` works), `separate()`, `pivot_wider()`, `pivot_longer()`, `factor()`.
+  Aggregate first, `collect()` the small result, then use them on the local table.
+- Convert the types once, when making the Parquet file (`scripts/convert_to_parquet.R` keeps `sample` as text), rather than casting in every query.
+- For community-ecology distances on a long sample-by-taxon table, use `ecolongr` (`el_vegdist()`, `el_decostand()`) and pass the result to `vegan`.
 
 ## Moving heavy work out of the Quarto document
 

@@ -46,6 +46,7 @@ echo 'all:' > data/Makefile
 
 cp $template_path/R/project.Rproj .
 cp $template_path/project_template/CLAUDE.md .
+printf '<!-- dltemplates sync: checked %s -->\n' "$(date +%F)" >> CLAUDE.md
 sed "s/__PROJNAME__/${pname}/" $template_path/misc/screenrc | sed '/__INSERTPOINT__/a chdir $ROOT/scripts\nscreen -t scripts' | sed '/__INSERTPOINT__/a chdir $ROOT/data\nscreen -t data' | sed '/__INSERTPOINT__/a chdir $ROOT/docs\nscreen -t docs' > .screenrc
 cp $template_path/misc/gitignore .gitignore
 cp $template_path/misc/tools.bib .

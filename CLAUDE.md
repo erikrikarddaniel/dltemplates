@@ -31,8 +31,10 @@ Most files are named or contain `__PLACEHOLDER__`-style tokens (e.g. `__TITLE__`
     `data/Makefile` pattern rule. Copied into every scaffolded project's `scripts/` by
     `setup_project.sh`, for pipeline output whose version/flags didn't already produce
     Parquet — see `project_template/CLAUDE.md`'s "Fetching pipeline output into `data/`".
+    Keeps `sample` as text when the file has that column.
   - `sanity_check_core.R` — shared `rank_stats()`/`top_taxa()`/`assign_palette()`/
-    `taxonomy_barplot_data()` functions for the NMDS + taxonomy composition "sanity check"
+    `taxonomy_barplot_data()` functions (they accept a lazy `duckplyr` table and `collect()`
+    only the small aggregated result) for the NMDS + taxonomy composition "sanity check"
     analysis (see project_template/CLAUDE.md's own doc comment at the top of the file for
     what each does and why, and its cross-plot palette-consistency registry). Deliberately
     stops short of the actual `ggplot()` calls — those are meant to stay as verbatim,
@@ -45,9 +47,11 @@ Most files are named or contain `__PLACEHOLDER__`-style tokens (e.g. `__TITLE__`
     barplot; `metatdenovo`'s also has a second, functional NMDS from KOfamScan's
     best-hit-per-ORF table, combined with the taxonomic one via `patchwork`). Each contains
     a `read-data` chunk with that pipeline's specific file/column layout (verified against
-    each pipeline's actual source as of 2026-09 — `ampliseq` pre-3.0 has no direct relative
-    abundance, computed here from ASV counts instead) and sources `sanity_check_core.R` for
-    the shared stats/palette logic. Same section skeleton and bibliography set as the other
+    each pipeline's actual source as of 2026-10), read from Parquet through `duckplyr`.
+    `ampliseq` has no direct relative abundance, computed here from ASV counts; it reads the
+    3.0 `summary_tables` files, with a fallback to the pre-3.0 wide `ASV_table`. The NMDS
+    distances come from `ecolongr::el_vegdist()`. Each template sources `sanity_check_core.R`
+    for the shared stats/palette logic. Same section skeleton and bibliography set as the other
     report templates above.
 - `ruby/` — Ruby CLI script skeletons using `optparse`, one plain and one
   (`ruby_w_output_format_template`) with a pluggable `FORMATS` dispatch table for
@@ -82,7 +86,8 @@ Most files are named or contain `__PLACEHOLDER__`-style tokens (e.g. `__TITLE__`
   name. In every mode it creates `data/`, `scripts/` (pre-populated with
   `convert_to_parquet.R`), `figures/` (with a `.gitignore` for generated images), and
   `docs/`, a `Makefile` and `data/Makefile`, copies in `project.Rproj`,
-  `project_template/CLAUDE.md`, `misc/gitignore`, and `misc/tools.bib`, renders
+  `project_template/CLAUDE.md` (stamping a `dltemplates sync: checked <date>` marker on its last
+  line), `misc/gitignore`, and `misc/tools.bib`, renders
   `misc/screenrc` (substituting `__PROJNAME__` and splicing in `data`/`scripts`/`docs`
   screen windows at `__INSERTPOINT__`), copies `R/quarto.qmd` to `<projectname>.qmd`, touches
   an empty `bibliography.bib`, and runs `git init` + `git add .`. Usage:
@@ -102,6 +107,10 @@ Most files are named or contain `__PLACEHOLDER__`-style tokens (e.g. `__TITLE__`
   change what `setup_project.sh` creates or how it's invoked, update both this file and
   `project_template/CLAUDE.md` to match — they drifted out of sync before (see git history:
   "sync setup_project.sh with CLAUDE.md").
+- Scaffolded projects compare their `CLAUDE.md` with `project_template/CLAUDE.md` every 30 days
+  or so (section "Keeping this file up to date"), so edits here reach existing projects only
+  once a student agrees to that check. Keep the section and the marker format in `setup_project.sh`
+  in sync, and don't rename `project_template/CLAUDE.md` without updating that section's clone path.
 - Keep the `__PLACEHOLDER__` naming convention consistent when adding new templates —
   it's the pattern `setup_project.sh` and users' own `sed` substitutions rely on.
 - There's no automated test suite; verify changes to `setup_project.sh` by actually running

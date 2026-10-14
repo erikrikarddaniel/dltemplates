@@ -11,6 +11,11 @@
 # the fiddly, easy-to-get-subtly-wrong parts (rank aggregation, Other-folding, palette
 # consistency) that are worth getting right once rather than rewriting per project.
 #
+# `tbl` can be an in-memory data frame or a lazy duckplyr table; rank_stats() and
+# taxonomy_barplot_data() aggregate inside DuckDB and collect() only the small result.
+# Group with `.by`, never group_by(), and keep verbs DuckDB can't translate (case_when(),
+# factor(), as.character()) after the collect().
+#
 # To keep the same taxon getting the same colour in every plot in a document, build a
 # palette once with assign_palette() and reuse it in every plot that uses that variable,
 # rather than building a fresh one per plot.
@@ -23,10 +28,16 @@ suppressPackageStartupMessages(library(RColorBrewer))
 # so mean/max reflect variation *across samples* for that taxon, not across the individual
 # features (ASVs/ORFs) that happen to make it up.
 rank_stats <- function(tbl, rank, value) {
+  rank_name <- rlang::as_label(rlang::enquo(rank))
   tbl %>%
-    group_by({{ rank }}, sample) %>%
-    summarise(.persample = sum({{ value }}, na.rm = TRUE), .groups = "drop_last") %>%
-    summarise(sum = sum(.persample), mean = mean(.persample), max = max(.persample), .groups = "drop")
+    transmute(.rank = {{ rank }}, sample, .value = {{ value }}) %>%
+    summarise(.persample = sum(.value, na.rm = TRUE), .by = c(.rank, sample)) %>%
+    summarise(
+      sum = sum(.persample, na.rm = TRUE), mean = mean(.persample, na.rm = TRUE), max = max(.persample, na.rm = TRUE),
+      .by = .rank
+    ) %>%
+    collect() %>%
+    rename(!!rank_name := .rank)
 }
 
 # Taxa clearing `threshold` on `stat`, sorted descending (so callers can use this order
@@ -117,13 +128,15 @@ assign_palette <- function(taxa, variable, palette = "Paired", other = "Other", 
 #     theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
 taxonomy_barplot_data <- function(tbl, rank, value, top, other = "Other", unassigned = "Unassigned") {
   tbl %>%
+    transmute(.rank = {{ rank }}, sample, .value = {{ value }}) %>%
+    summarise(value = sum(.value, na.rm = TRUE), .by = c(sample, .rank)) %>%
+    collect() %>%
     mutate(.display = case_when(
-      is.na({{ rank }}) ~ unassigned,
-      {{ rank }} %in% top ~ as.character({{ rank }}),
+      is.na(.rank) ~ unassigned,
+      .rank %in% top ~ .rank,
       TRUE ~ other
     )) %>%
-    group_by(sample, .display) %>%
-    summarise(value = sum({{ value }}, na.rm = TRUE), .groups = "drop") %>%
+    summarise(value = sum(value), .by = c(sample, .display)) %>%
     mutate(.display = factor(.display, levels = c(top, other, unassigned)))
 }
 
