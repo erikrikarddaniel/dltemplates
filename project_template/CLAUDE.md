@@ -661,6 +661,8 @@ When writing or editing analysis code for these tables:
 - Not translatable (checked with `duckplyr` 1.2.1, so test before relying on a newer one): `as.character()`, `case_when()`, `ifelse()` (`if_else()` works), `separate()`, `pivot_wider()`, `pivot_longer()`, `factor()`.
   Aggregate first, `collect()` the small result, then use them on the local table.
 - Convert the types once, when making the Parquet file (`scripts/convert_to_parquet.R` keeps `sample` as text), rather than casting in every query.
+- In SQL, `x NOT IN (a, b, nullable_column)` returns `NULL` when the column is `NULL`, so the row is dropped.
+  Use `IS DISTINCT FROM` for each value instead.
 - For community-ecology distances on a long sample-by-taxon table, use `ecolongr` (`el_vegdist()`, `el_decostand()`) and pass the result to `vegan`.
 
 ## Moving heavy work out of the Quarto document
@@ -679,8 +681,25 @@ the student to hit the problem:
   several fetched files may each assign a candidate taxonomy, and something has to decide
   which one to settle on per feature. That decision logic is exactly the kind of thing that
   belongs in a `scripts/` script, not inline in the report.
+  Pitfalls, from a `metatdenovo` project with RefSeq, MarFERReT and GTDB tables:
+  - A row in a taxonomy table is not a classification.
+    The `metatdenovo` taxonomy tables have a row for every ORF, with `NA` ranks where nothing matched.
+    Test `domain IS NOT NULL`, not that the ORF has a row.
+    GTDB writes `root` for hits it can't place in a domain; treat that as unclassified too.
+  - Let the later databases classify ORFs the first one left without a domain, not only ORFs it had already placed.
+    In that project it cut the TPM without a domain in the metatranscriptomes from 63% to 35%.
+  - NCBI-derived ranks have gaps.
+    Dinoflagellates, pelagophytes and other protists have a class and below but no phylum, because the clade above the class has no phylum rank.
+    A phylum plot then shows most eukaryotes as unassigned.
+    Fill the gap with the closest named clade from the lineage string and record it in a column such as `phylum_source` (`rank` or `clade`), so plots can mark the placeholders.
 - **Large statistical tests**: run once and their result cached as a `data/` file, instead
   of being recomputed on every render.
+
+When such a script is a rule in `data/Makefile`:
+- List the script itself as a prerequisite, so changing its logic rebuilds the table.
+  Pass only the data files to it, e.g. `$(filter %.parquet,$^)`.
+- If the Parquet files are built in another directory and symlinked into `data/`, add `.SECONDARY:`.
+  Without it `make` deletes the files it built through the pattern-rule chain as intermediates, and the next run rebuilds all of them.
 
 As with fetched pipeline output, the result of these scripts is often too large to commit
 — the same blanket `data/*` `.gitignore` pattern from the section above already covers
