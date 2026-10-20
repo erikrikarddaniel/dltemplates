@@ -526,10 +526,10 @@ When a student wants this wired up and it isn't yet (`data/Makefile` still just 
      %.parquet: %.tsv
      	Rscript ../scripts/convert_to_parquet.R $< $@
      ```
-     It needs the `arrow` and `readr` R packages — ask the student before installing
-     `arrow` if it isn't already there (`readr` is core tidyverse, usually already
-     present).
-     Reading the result needs `duckplyr`; ask before installing that too.
+     The converter uses DuckDB, so it needs the `duckdb` and `DBI` R packages, which
+     `duckplyr` (needed to read the result) pulls in; ask before installing `duckplyr`
+     if it isn't already there.
+     It streams the file, so tables larger than memory convert fine.
 6. Since fetched files now land directly in `data/` with whatever names the pipeline gave
    them, per-subdirectory `.gitignore` entries no longer make sense. Instead, check whether
    the project's `.gitignore` already ignores everything under `data/` except the tracked
