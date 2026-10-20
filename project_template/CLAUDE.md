@@ -612,6 +612,8 @@ convert them first; the templates read Parquet only.
    `ecolongr` is not on CRAN and needs a C++ compiler:
    `remotes::install_github("biodiversitydata-se/ecolongr")` (install `remotes` first if
    it is missing).
+   Version 0.1.1 or later is required, because 0.1.0 gives wrong, run-dependent distances when `el_vegdist()` runs on several threads.
+   Check with `packageVersion("ecolongr")` and reinstall if it is older.
    The NMDS chunks use `ecolongr::el_vegdist()` to compute Bray-Curtis distances straight
    from the long table, without building the samples-by-taxa matrix `vegan` would need,
    and pass the result to `vegan::metaMDS()`.
