@@ -393,15 +393,16 @@ When a student wants this wired up and it isn't yet (`data/Makefile` still just 
    The analysis templates read Parquet (see "Working with Parquet tables in R" below),
    because it is faster to read and DuckDB loads only what a query needs.
    If there are none, offer to build them (step 5); don't build them without asking.
-   Support is new and differs across these three pipelines (checked 2026-09), so
+   Support is new and differs across these three pipelines (checked 2026-10), so
    don't assume from the pipeline name alone:
    - `magmap` (v1.2.0+, 2026-08-11): opt-in via `--save_parquet`; when used, every
      `summary_tables/*.tsv.gz` file gets a same-named `*.parquet` sibling.
    - `ampliseq` (3.0.0+, released 2026-10-09): every `summary_tables/ampliseq.*.tsv.gz`
      has a `.parquet` twin, on by default, opt-out via `--skip_parquet_summary`.
      Runs made with a version before 3.0 have neither.
-   - `metatdenovo`: not implemented yet (tracked as nf-core/metatdenovo#473) — no run will
-     have Parquet output.
+   - `metatdenovo` (2.0.0+): opt-in via `--save_parquet`; when used, every
+     `summary_tables/*.tsv.gz` file gets a same-named `*.parquet` sibling.
+     Runs made with an older version, or without the flag, have none.
    The reliable check is the run's actual output directory, not the pipeline/version in
    the abstract: `ssh <alias> "ls <outdir>/summary_tables/*.parquet 2>/dev/null"`. If you can't check yet — e.g. the `ssh`
    alias isn't set up until step 3 below — ask the student whether they think there are
