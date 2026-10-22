@@ -42,6 +42,13 @@ touch docs/.gitkeep
 
 echo 'all:' > Makefile
 echo '	cd data; make all' >> Makefile
+echo >> Makefile
+echo '# The below two require the quarto program in your path' >> Makefile
+echo '%.pdf: %.qmd' >> Makefile
+echo '	quarto render $< --to pdf' >> Makefile
+echo >> Makefile
+echo '%.html: %.qmd' >> Makefile
+echo '	quarto render $< --to html' >> Makefile
 echo 'all:' > data/Makefile
 
 cp $template_path/R/project.Rproj .
