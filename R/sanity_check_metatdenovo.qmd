@@ -29,12 +29,14 @@ ggplot2::theme_set(ggplot2::theme_bw())
 library(readr)
 library(tibble)
 library(dplyr, warn.conflicts = FALSE)
+library(duckplyr)
 library(tidyr)
 library(purrr)
 library(stringr)
 library(ggplot2)
 library(RColorBrewer)
 library(vegan)
+library(ecolongr)
 library(kfigr)
 library(knitr)
 library(grateful)
@@ -59,40 +61,42 @@ ORDERED_TAXRANKS <- c('domain', 'kingdom', 'phylum', 'class', 'order', 'family',
 # metatdenovo filenames are prefixed by <assembly_name>.<orfcaller_name> (e.g.
 # "megahit.prodigal"), so reruns with different settings don't overwrite each other's
 # output. Set this to match whichever run's files are actually in data/ --
-# `Sys.glob("data/*.counts.tsv.gz")` lists what's there if it's not obvious.
+# `Sys.glob("data/*.counts.parquet")` lists what's there if it's not obvious.
 PREFIX <- "__ASSEMBLY_ORFCALLER__"
 ```
 
 ```{r read-data}
 #| label: read-data
 
-counts <- read_tsv(sprintf("data/%s.counts.tsv.gz", PREFIX), show_col_types = FALSE) %>%
-  mutate(sample = as.character(sample))
+# prudence = "stingy" makes duckplyr stop with an error, instead of silently loading the
+# whole table into R, when a verb can't run inside DuckDB. Reading, joining, filtering and
+# summing below stay lazy; only small summaries are collected.
+counts <- read_parquet_duckdb(sprintf("data/%s.counts.parquet", PREFIX), prudence = "stingy")
 
 # Taxonomy source varies by run -- prefer EUKulele when present (fixed
 # domain/phylum/.../species columns, no parsing needed); fall back to Diamond taxonomy
 # otherwise (rank column names there are whatever --diamond_taxonomy_ranks used, so check
 # the file's actual header if this project only has that one).
-eukulele_file <- Sys.glob(sprintf("data/%s.*_eukulele.tsv.gz", PREFIX))
-diamond_file  <- Sys.glob(sprintf("data/%s.*.diamond.taxonomy.tsv.gz", PREFIX))
+eukulele_file <- Sys.glob(sprintf("data/%s.*_eukulele.parquet", PREFIX))
+diamond_file  <- Sys.glob(sprintf("data/%s.*.diamond.taxonomy.parquet", PREFIX))
 
 taxonomy <- if (length(eukulele_file) > 0) {
-  read_tsv(eukulele_file[1], show_col_types = FALSE)
+  read_parquet_duckdb(eukulele_file[1], prudence = "stingy")
 } else {
-  read_tsv(diamond_file[1], show_col_types = FALSE)
+  read_parquet_duckdb(diamond_file[1], prudence = "stingy")
 }
 
 tbl_taxonomic <- counts %>%
   left_join(taxonomy, by = "orf")
 
-# kofamscan-uniq.tsv.gz is already reduced to one row per ORF (best hit), which is what
-# makes a plain left_join safe here -- no risk of an ORF fanning out to multiple rows.
-kofam <- read_tsv(sprintf("data/%s.kofamscan-uniq.tsv.gz", PREFIX), show_col_types = FALSE)
+# kofamscan-uniq is already reduced to one row per ORF (best hit), which is what makes a
+# plain left_join safe here -- no risk of an ORF fanning out to multiple rows.
+kofam <- read_parquet_duckdb(sprintf("data/%s.kofamscan-uniq.parquet", PREFIX), prudence = "stingy")
 
 tbl_functional <- counts %>%
   left_join(kofam %>% select(orf, ko, ko_definition), by = "orf")
 
-sample_metadata <- read_tsv("data/sample_table.tsv", show_col_types = FALSE)
+sample_metadata <- read_tsv("data/sample_table.tsv", col_types = cols(sample = col_character()))
 ```
 
 # Version history
@@ -139,10 +143,12 @@ ggplot(barplot_tbl, aes(x = sample, y = value, fill = .display)) +
 NMDS is rank-based and robust to the choice of transformation, so no transformation is
 applied here -- Bray-Curtis dissimilarity, computed twice: once on family-level TPM
 (taxonomic composition, matching the barplot above) and once on KEGG-ortholog-level TPM
-(functional composition, from KOfamScan's best-hit-per-ORF table). Both exclude
-undefined/unmatched ORFs before summing (not folded into an "Other" bucket, unlike the
-barplot above), and both colour by the same `treatment` palette so the combined figure
-below can share a single legend.
+(functional composition, from KOfamScan's best-hit-per-ORF table). The distances come from
+`ecolongr::el_vegdist()`, which works directly on the long table (one row per sample and
+taxon) without building the samples-by-taxa matrix, and are then passed to `vegan::metaMDS()`.
+Both exclude undefined/unmatched ORFs before summing (not folded into an "Other" bucket,
+unlike the barplot above), and both colour by the same `treatment` palette so the combined
+figure below can share a single legend.
 
 ```{r nmds}
 #| label: fig-nmds
@@ -151,18 +157,15 @@ below can share a single legend.
 
 treatment_pal <- assign_palette(sort(unique(sample_metadata$treatment)), variable = "treatment", palette = "Set1")
 
-nmds_taxonomic_data <- tbl_taxonomic %>%
+d_taxonomic <- tbl_taxonomic %>%
   filter(!is.na(family)) %>%
-  group_by(sample, family) %>%
-  summarise(value = sum(tpm), .groups = "drop") %>%
-  pivot_wider(names_from = family, values_from = value, values_fill = 0)
-
-nmds_taxonomic_matrix <- as.matrix(select(nmds_taxonomic_data, -sample))
-rownames(nmds_taxonomic_matrix) <- nmds_taxonomic_data$sample
+  summarise(quant = sum(tpm, na.rm = TRUE), .by = c(sample, family)) %>%
+  transmute(sample, taxon = family, quant) %>%
+  el_vegdist("bray")
 
 # trace = 0 silences the per-iteration console output; ord$tries hitting trymax (default
 # 20) just means it used its full random-start budget, not that anything failed.
-ord_taxonomic <- metaMDS(nmds_taxonomic_matrix, distance = "bray", autotransform = FALSE, trace = 0)
+ord_taxonomic <- metaMDS(d_taxonomic, trace = 0)
 
 scores_taxonomic_tbl <- as.data.frame(ord_taxonomic$points) %>%
   rownames_to_column("sample") %>%
@@ -173,16 +176,13 @@ p_taxonomic <- ggplot(scores_taxonomic_tbl, aes(x = MDS1, y = MDS2, colour = tre
   scale_colour_manual(values = treatment_pal) +
   labs(title = "Taxonomic (family)", subtitle = sprintf("stress = %.3f", ord_taxonomic$stress))
 
-nmds_functional_data <- tbl_functional %>%
+d_functional <- tbl_functional %>%
   filter(!is.na(ko)) %>%
-  group_by(sample, ko) %>%
-  summarise(value = sum(tpm), .groups = "drop") %>%
-  pivot_wider(names_from = ko, values_from = value, values_fill = 0)
+  summarise(quant = sum(tpm, na.rm = TRUE), .by = c(sample, ko)) %>%
+  transmute(sample, taxon = ko, quant) %>%
+  el_vegdist("bray")
 
-nmds_functional_matrix <- as.matrix(select(nmds_functional_data, -sample))
-rownames(nmds_functional_matrix) <- nmds_functional_data$sample
-
-ord_functional <- metaMDS(nmds_functional_matrix, distance = "bray", autotransform = FALSE, trace = 0)
+ord_functional <- metaMDS(d_functional, trace = 0)
 
 scores_functional_tbl <- as.data.frame(ord_functional$points) %>%
   rownames_to_column("sample") %>%
