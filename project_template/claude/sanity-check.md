@@ -71,3 +71,7 @@ Confirmed worth the split on real data (remedios_non-polyA_overview, metatdenovo
 eye out for the same pattern recurring on other real runs once this has been used a few
 more times.
 
+
+To colour the NMDS by season, add a day-of-year column to the sample table (`doy = as.integer(format(date, "%j"))`) and use `colour = doy` with `scale_colour_doy()` from `sanity_check_core.R`.
+The scale is cyclic, so late December and early January get nearly the same colour, which a discrete month palette doesn't give.
+Samples with no date get grey.

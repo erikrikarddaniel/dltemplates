@@ -141,3 +141,15 @@ taxonomy_barplot_data <- function(tbl, rank, value, top, other = "Other", unassi
 }
 
 # vim: sw=2
+
+# Cyclic colour scale for day of year (1-366), so late December and early January get
+# nearly the same colour. A discrete month palette breaks that adjacency. Colour is a hue
+# circle at fixed chroma and luminance whose first and last stops are identical; limits
+# must stay c(1, 366) for the ends to meet. Get `doy` with as.integer(format(date, "%j")).
+scale_colour_doy <- function(name = "Day of year", ...) {
+  pal <- grDevices::hcl(h = seq(250, 610, length.out = 25), c = 70, l = 60)
+  ggplot2::scale_colour_gradientn(
+    colours = pal, limits = c(1, 366), name = name, na.value = "grey50",
+    breaks = c(1, 91, 182, 274), labels = c("Jan", "Apr", "Jul", "Oct"), ...
+  )
+}
