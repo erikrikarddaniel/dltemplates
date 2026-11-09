@@ -109,6 +109,12 @@
 	pages = {59--60},
 	file = {buchfink_et_al_2015.diamond.pdf:/home/daluab/Zotero/storage/GRLZ65PZ/buchfink_et_al_2015.diamond.pdf:application/pdf},
 }
+@misc{ecolongr,
+	title = {ecolongr},
+	author = {{Daniel Lundin}},
+	url = {https://github.com/biodiversitydata-se/ecolongr},
+	note = {R package, version 0.1.1},
+}
 @article{eggnog5,
 	title = {{eggNOG} 5.0: a hierarchical, functionally and phylogenetically annotated orthology resource based on 5090 organisms and 2502 viruses},
 	volume = {47},
@@ -242,6 +248,26 @@ Searching sequence databases is one of the most important applications in comput
 	month = nov,
 	year = {2025},
 	doi = {10.5281/zenodo.17752715},
+}
+@article{marferret,
+	title = {{MarFERReT}, an open-source, version-controlled reference library of marine microbial eukaryote functional genes},
+	volume = {10},
+	copyright = {2023 The Author(s)},
+	issn = {2052-4463},
+	url = {https://www.nature.com/articles/s41597-023-02842-4},
+	doi = {10.1038/s41597-023-02842-4},
+	abstract = {Metatranscriptomics generates large volumes of sequence data about transcribed genes in natural environments. Taxonomic annotation of these datasets depends on availability of curated reference sequences. For marine microbial eukaryotes, current reference libraries are limited by gaps in sequenced organism diversity and barriers to updating libraries with new sequence data, resulting in taxonomic annotation of about half of eukaryotic environmental transcripts. Here, we introduce Marine Functional EukaRyotic Reference Taxa (MarFERReT), a marine microbial eukaryotic sequence library designed for use with taxonomic annotation of eukaryotic metatranscriptomes. We gathered 902 publicly accessible marine eukaryote genomes and transcriptomes and assessed their sequence quality and cross-contamination issues, selecting 800 validated entries for inclusion in MarFERReT. Version 1.1 of MarFERReT contains reference sequences from 800 marine eukaryotic genomes and transcriptomes, covering 453 species- and strain-level taxa, totaling nearly 28 million protein sequences with associated NCBI and PR2 Taxonomy identifiers and Pfam functional annotations. The MarFERReT project repository hosts containerized build scripts, documentation on installation and use case examples, and information on new versions of MarFERReT.},
+	language = {en},
+	number = {1},
+	urldate = {2026-11-09},
+	journal = {Scientific Data},
+	publisher = {Nature Publishing Group},
+	author = {Groussman, R. D. and Blaskowski, S. and Coesel, S. N. and Armbrust, E. V.},
+	month = dec,
+	year = {2023},
+	keywords = {Classification and taxonomy, Microbial genetics, Transcriptomics},
+	pages = {926},
+	file = {Full Text PDF:/home/daluab/Zotero/storage/JFAWLSLV/Groussman et al. - 2023 - MarFERReT, an open-source, version-controlled reference library of marine microbial eukaryote functi.pdf:application/pdf},
 }
 @article{mcl,
 	title={Graph clustering via a discrete uncoupling process},
@@ -460,14 +486,21 @@ Contact: rb@l3-bioinfo.com, twlam@cs.hku.hk},
 	note = {original-date: 2015-09-02T19:03:29Z},
 }
 @software{phyloplace,
-  author    = {Lundin, Daniel},
-  title     = {nf-core/phyloplace},
-  publisher = {Zenodo},
-  year      = {2026},
-  doi       = {10.5281/zenodo.7643941},
-  url       = {https://doi.org/10.5281/zenodo.7643941},
+  author       = {Daniel Lundin},
+  title        = {nf-core/phyloplace: Phylosearch release},
+  month        = feb,
+  year         = 2025,
+  publisher    = {Zenodo},
+  version      = {2.0.0},
+  doi          = {10.5281/zenodo.14906186},
+  url          = {https://doi.org/10.5281/zenodo.14906186},
+  swhid        = {swh:1:dir:6e165d401e6ad441e173dc68f58a1ddee0fd79eb
+                   ;origin=https://doi.org/10.5281/zenodo.7643941;vis
+                   it=swh:1:snp:155cd9d6ee7ac0b306818bec9196acf6d1ded
+                   1bf;anchor=swh:1:rel:c37ea57e59c47c74fcbc877bab743
+                   9526745cb44;path=nf-core-phyloplace-827b85d
+                  },
 }
-
 @article{prokka,
 	title = {Prokka: rapid prokaryotic genome annotation},
 	issn = {1367-4803, 1460-2059},
@@ -903,10 +936,6 @@ Supplementary information: Supplementary data are available at Bioinformatics on
 	month=Aug,
 	pages={2722--2728}
 }
-@article{mafft, title={MAFFT Multiple Sequence Alignment Software Version 7: Improvements in Performance and Usability}, volume={30}, ISSN={1537-1719}, url={http://dx.doi.org/10.1093/molbev/mst010}, DOI={10.1093/molbev/mst010}, number={4}, journal={Molecular Biology and Evolution}, publisher={Oxford University Press (OUP)}, author={Katoh, K. and Standley, D. M.}, year={2013}, month=Jan, pages={772–780} }
-
-@article{bmge, title={BMGE (Block Mapping and Gathering with Entropy): a new software for selection of phylogenetic informative regions from multiple sequence alignments}, volume={10}, ISSN={1471-2148}, url={http://dx.doi.org/10.1186/1471-2148-10-210}, DOI={10.1186/1471-2148-10-210}, number={1}, journal={BMC Evolutionary Biology}, publisher={Springer Science and Business Media LLC}, author={Criscuolo, Alexis and Gribaldo, Simonetta}, year={2010}, pages={210} }
-
 @article{kegg,
 	title = {{KEGG}: biological systems database as a model of the real world},
 	volume = {53},
@@ -954,60 +983,23 @@ Supplementary information: Supplementary data are available at Bioinformatics on
 	url = {https://bioconductor.org/packages/KEGGREST},
 	doi = {10.18129/B9.bioc.KEGGREST},
 }
-
-@article{sativa,
-  title   = {Phylogeny-aware identification and correction of taxonomically mislabeled sequences},
-  volume  = {44},
-  number  = {11},
-  doi     = {10.1093/nar/gkw396},
-  journal = {Nucleic Acids Research},
-  author  = {Kozlov, Alexey M. and Zhang, Jiajie and Yilmaz, Pelin and Gl{\"o}ckner, Frank Oliver and Stamatakis, Alexandros},
-  year    = {2016},
-  month   = may,
-  pages   = {5022--5033}
-}
-
-@article{epang,
-  title   = {{EPA-ng}: Massively Parallel Evolutionary Placement of Genetic Sequences},
-  volume  = {68},
-  number  = {2},
-  doi     = {10.1093/sysbio/syy054},
-  journal = {Systematic Biology},
-  author  = {Barbera, Pierre and Kozlov, Alexey M. and Czech, Lucas and Morel, Benoit and Darriba, Diego and Flouri, Tom{\'a}{\v s} and Stamatakis, Alexandros},
-  year    = {2018},
-  month   = sep,
-  pages   = {365--369}
-}
-
-@article{raxmlng,
-  title   = {{RAxML-NG}: a fast, scalable and user-friendly tool for maximum likelihood phylogenetic inference},
-  volume  = {35},
-  number  = {21},
-  doi     = {10.1093/bioinformatics/btz305},
-  journal = {Bioinformatics},
-  author  = {Kozlov, Alexey M. and Darriba, Diego and Flouri, Tom{\'a}{\v s} and Morel, Benoit and Stamatakis, Alexandros},
-  year    = {2019},
-  month   = may,
-  pages   = {4453--4455}
-}
-
-@article{raxtax,
-  title   = {raxtax: a k-mer-based non-Bayesian taxonomic classifier},
-  volume  = {41},
-  number  = {12},
-  doi     = {10.1093/bioinformatics/btaf620},
-  journal = {Bioinformatics},
-  author  = {Wahl, Noah A. and Koutsovoulos, Georgios and Bettisworth, Ben and Stamatakis, Alexandros},
-  year    = {2025},
-  month   = nov
-}
-
-@software{sativa-epang,
-  title     = {sativa-epang: {SATIVA} with {EPA-ng} as the placement engine},
-  author    = {Gardette, Auguste},
-  version   = {0.10.2},
-  date      = {2026-09-29},
-  year      = {2026},
-  url       = {https://github.com/Aaramis/sativa-epang},
-  license   = {GPL-3.0-or-later}
+@article{wgcna,
+	title = {{WGCNA}: an {R} package for weighted correlation network analysis},
+	volume = {9},
+	issn = {1471-2105},
+	shorttitle = {{WGCNA}},
+	url = {https://bmcbioinformatics.biomedcentral.com/articles/10.1186/1471-2105-9-559},
+	doi = {10.1186/1471-2105-9-559},
+	abstract = {Background: Correlation networks are increasingly being used in bioinformatics applications. For example, weighted gene co-expression network analysis is a systems biology method for describing the correlation patterns among genes across microarray samples. Weighted correlation network analysis (WGCNA) can be used for finding clusters (modules) of highly correlated genes, for summarizing such clusters using the module eigengene or an intramodular hub gene, for relating modules to one another and to external sample traits (using eigengene network methodology), and for calculating module membership measures. Correlation networks facilitate network based gene screening methods that can be used to identify candidate biomarkers or therapeutic targets. These methods have been successfully applied in various biological contexts, e.g. cancer, mouse genetics, yeast genetics, and analysis of brain imaging data. While parts of the correlation network methodology have been described in separate publications, there is a need to provide a userfriendly, comprehensive, and consistent software implementation and an accompanying tutorial.
+Results: The WGCNA R software package is a comprehensive collection of R functions for performing various aspects of weighted correlation network analysis. The package includes functions for network construction, module detection, gene selection, calculations of topological properties, data simulation, visualization, and interfacing with external software. Along with the R package we also present R software tutorials. While the methods development was motivated by gene expression data, the underlying data mining approach can be applied to a variety of different settings.
+Conclusion: The WGCNA package provides R functions for weighted correlation network analysis, e.g. co-expression network analysis of gene expression data. The R package along with its source code and additional material are freely available at http://www.genetics.ucla.edu/labs/ horvath/CoexpressionNetwork/Rpackages/WGCNA.},
+	language = {en},
+	number = {1},
+	urldate = {2019-08-27},
+	journal = {BMC Bioinformatics},
+	author = {Langfelder, Peter and Horvath, Steve},
+	month = dec,
+	year = {2008},
+	pages = {559},
+	file = {Langfelder and Horvath - 2008 - WGCNA an R package for weighted correlation netwo.pdf:/home/daluab/Zotero/storage/T5EELA8N/Langfelder and Horvath - 2008 - WGCNA an R package for weighted correlation netwo.pdf:application/pdf},
 }
