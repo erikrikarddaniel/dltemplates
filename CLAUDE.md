@@ -50,7 +50,9 @@ Most files are named or contain `__PLACEHOLDER__`-style tokens (e.g. `__TITLE__`
     each pipeline's actual source as of 2026-10), read from Parquet through `duckplyr`.
     `ampliseq` has no direct relative abundance, computed here from ASV counts; it reads the
     3.0 `summary_tables` files, with a fallback to the pre-3.0 wide `ASV_table`. The NMDS
-    distances come from `ecolongr::el_vegdist()`. Each template sources `sanity_check_core.R`
+    distances come from `ecolongr::el_vegdist()`. `ampliseq`'s also has a richness section:
+    `breakaway::breakaway_nof1()` per sample on the counts of counts from
+    `ecolongr::el_frequency_counts()`, plotted as points with confidence-interval error bars. Each template sources `sanity_check_core.R`
     for the shared stats/palette logic. Same section skeleton and bibliography set as the other
     report templates above.
 - `ruby/` — Ruby CLI script skeletons using `optparse`, one plain and one

@@ -5,7 +5,8 @@ Part of the dltemplates project `CLAUDE.md`, loaded on demand: clone dltemplates
 
 When a student asks for a "sanity check" (or similar — a first-look diagnostic on their
 pipeline output), this means a specific deliverable: an NMDS ordination plus a stacked
-phylum-level taxonomy composition barplot, as a new `sanity_check.qmd`. Prerequisites:
+phylum-level taxonomy composition barplot (and, for `ampliseq`, an estimated-richness plot),
+as a new `sanity_check.qmd`. Prerequisites:
 pipeline output already fetched into `data/` as Parquet files (see `fetch-pipeline-output.md`, including a sample
 table if one exists — needed to colour/shape the NMDS).
 If `data/` has only TSVs, go back to step 5 of the fetching instructions and offer to
@@ -40,10 +41,14 @@ convert them first; the templates read Parquet only.
    `remotes::install_github("biodiversitydata-se/ecolongr")` (install `remotes` first if
    it is missing).
    Version 0.1.1 or later is required, because 0.1.0 gives wrong, run-dependent distances when `el_vegdist()` runs on several threads.
+   The `ampliseq` template needs 0.2.0 or later, for `el_frequency_counts()`.
    Check with `packageVersion("ecolongr")` and reinstall if it is older.
    The NMDS chunks use `ecolongr::el_vegdist()` to compute Bray-Curtis distances straight
    from the long table, without building the samples-by-taxa matrix `vegan` would need,
    and pass the result to `vegan::metaMDS()`.
+   The `ampliseq` template also needs `breakaway` for its richness section.
+   It is not on CRAN: `remotes::install_github("adw96/breakaway")`.
+   It depends on `phyloseq`, which is on Bioconductor, so install that first with `BiocManager::install("phyloseq")` (install `BiocManager` first if it is missing).
    The `ampliseq` template reads the 3.0 `ampliseq.counts.parquet` and
    `ampliseq.taxonomy.DADA2.*.parquet` when they exist.
    For older runs it falls back to unpivoting the wide `ASV_table.parquet` to a long table

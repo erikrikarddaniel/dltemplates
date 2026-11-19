@@ -37,6 +37,7 @@ library(ggplot2)
 library(RColorBrewer)
 library(vegan)
 library(ecolongr)
+library(breakaway)
 library(kfigr)
 library(knitr)
 library(grateful)
@@ -187,6 +188,42 @@ ggplot(scores_tbl, aes(x = MDS1, y = MDS2, colour = treatment, shape = site)) +
   geom_point(size = 3) +
   scale_colour_manual(values = treatment_pal) +
   labs(title = sprintf("NMDS, stress = %.3f", ord$stress))
+```
+
+## Richness
+
+Observed ASV richness depends on how deeply each sample was sequenced. `breakaway`
+[@breakaway] instead estimates the richness including the ASVs the sequencing missed, from
+the number of ASVs seen once, twice and so on in each sample, and gives a confidence
+interval. DADA2 removes singleton reads, so `breakaway_nof1()`, which does not use the
+number of singletons, is the appropriate function. The estimate depends on the model fitted
+to those counts, so read it as a comparison between samples, not as a true richness.
+`ecolongr::el_frequency_counts()` makes the per-sample counts of counts from the long table
+inside DuckDB.
+
+```{r richness}
+#| label: fig-richness
+#| fig-cap: Estimated ASV richness per sample (`breakaway_nof1()`), with the 95% confidence interval. Samples where the fit failed are left out.
+
+# breakaway reads one table per sample, sorted by count, with the count in the first column
+# and the number of ASVs in the second. possibly() turns a failed fit into NULL.
+richness <- asv_counts %>%
+  el_frequency_counts(sample = "sample", quant = "count") %>%
+  collect() %>%
+  arrange(sample, count) %>%
+  split(~ sample) %>%
+  map(\(d) possibly(breakaway_nof1, otherwise = NULL)(select(d, count, n_taxa))) %>%
+  compact() %>%
+  imap(\(e, s) tibble(sample = s, estimate = e$estimate, lower = e$interval[[1]], upper = e$interval[[2]])) %>%
+  list_rbind() %>%
+  left_join(sample_metadata, by = "sample")
+
+ggplot(richness, aes(x = reorder(sample, estimate), y = estimate, colour = treatment, shape = site)) +
+  geom_errorbar(aes(ymin = lower, ymax = upper), width = 0.3) +
+  geom_point(size = 3) +
+  scale_colour_manual(values = treatment_pal) +
+  labs(x = NULL, y = "Estimated ASV richness") +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))
 ```
 
 # Discussion
