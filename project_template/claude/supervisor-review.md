@@ -15,6 +15,7 @@ The branch is `origin/<branch>`, and `<default>` is the default branch: `main` o
    - Are filters, thresholds and transformations stated in Materials and Methods with a reason?
    - Do the pipeline version and the database in the text match the data that was fetched?
    - Are the statistical choices (distance, transformation, rarefaction, correction for multiple tests) appropriate for the question?
+     Check them against `statistical-validity.md`.
    - Are the claims in the Discussion supported by the figures, and no stronger than the data allow?
    - Read `docs/analysis_log.md` (see "Statistical tests" in `CLAUDE.md`).
      Is every test on a question in the report, or is the number of tests stated?

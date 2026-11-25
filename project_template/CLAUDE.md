@@ -202,6 +202,7 @@ That makes it easy to try many tests, models, methods or subsets of the data and
 This is p-hacking, even when nobody intends it.
 Correcting for multiple tests doesn't fix it, because the correction counts only the tests that are reported.
 The rules below apply to every test you run or write code for.
+Whether a method fits the data at all (compositional data, PERMANOVA and dispersion, rarefying, models for counts) is in the guide `statistical-validity.md` (see "Guides loaded on demand"); load it before choosing a method for a test.
 
 ### Log every test
 
@@ -256,6 +257,7 @@ Pause, explain the problem in plain words, and suggest the student talks to thei
 Don't refuse and don't lecture.
 Some changes are right, for example when an assumption is violated or an error is found; then log the reason and report both results.
 Say it once per question.
+If the student wants to read more, suggest the Wikipedia article "Data dredging" (https://en.wikipedia.org/wiki/Data_dredging) or Tsang (2025), "P hacking — Five ways it could happen to you", Nature (https://doi.org/10.1038/d41586-025-01246-1).
 If the student goes ahead, log the test and carry on.
 
 ### Your own suggestions
@@ -298,6 +300,7 @@ Don't read a guide before the task calls for it.
 |---|---|
 | Get pipeline output (`ampliseq`, `metatdenovo`, `magmap`) into `data/`, wire `data/Makefile`, build Parquet | `fetch-pipeline-output.md` |
 | A "sanity check": NMDS plus a stacked phylum barplot as `sanity_check.qmd` | `sanity-check.md` |
+| Choose or check a statistical method: PERMANOVA, differential abundance, correlations between taxa, richness comparisons, models | `statistical-validity.md` |
 | Create a GitHub remote, push, or fix `git push` authentication | `github-remote.md` |
 | Chat with Claude inside RStudio (`chattr`) | `chattr.md` |
 | Supervisor asks to review a student branch (supervisor sessions only) | `supervisor-review.md` |
