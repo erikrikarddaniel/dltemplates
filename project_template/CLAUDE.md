@@ -206,12 +206,15 @@ The rules below apply to every test you run or write code for.
 ### Log every test
 
 Keep a log in `docs/analysis_log.md`, and create it at the first test.
+Before any test, read the log, and tell the student about earlier tests on the same question.
 Add a row for every statistical test, whatever the result and whether or not it will be reported.
 A test is anything that gives a p-value, a confidence interval used to decide something, or a choice between models.
 Examples: PERMANOVA (`adonis2()`), `betadisper()`, Mantel tests, correlation tests, coefficients from `lm()`, `glm()` or mixed models, differential abundance, indicator species, model selection by AIC.
 Add the row when the test is first run or first written into a script or the report, not on every render.
 If the student says they ran tests outside this session, add those too.
 Never delete or change an old row; add a new row that corrects it.
+Also log changes to the processing made after any result has been seen: rarefaction depth, filtering thresholds, contaminant removal, taxonomy database, a pipeline re-run with other parameters.
+Put the change under `Method` and its effect on earlier results under `Result`.
 
 ```markdown
 # Analysis log
@@ -242,10 +245,12 @@ Exploratory tests are fine too: log them as exploratory, and treat their results
 
 Pause, explain the problem in plain words, and suggest the student talks to their supervisor before going on, when:
 
-- a different test, model, transformation, distance or normalisation is wanted after a result has been seen;
+- a different test, model, transformation, distance, normalisation, filtering threshold, rarefaction depth or pipeline setting is wanted after a result has been seen;
 - samples, outliers or subsets are to be removed or selected after a result has been seen, for a reason not given beforehand;
 - covariates are added or swapped until something becomes significant;
 - only some of the tests on a question are to be reported;
+- samples or sequencing are to be added because a result is close to significant;
+- a test is on something selected from the same data by the effect it tests (see "Valid tests" below);
 - the request amounts to finding a test that gives a significant result.
 
 Don't refuse and don't lecture.
@@ -263,8 +268,25 @@ If the student goes ahead, log the test and carry on.
 - For differential abundance, choose one method in the plan, or run several and report where they agree.
   The methods disagree a lot, so it is easy to end up with the one that gives the most hits.
 
-When writing Results or Discussion, check the report against the log.
-Every test on a question should be in the report, or the report should state how many tests were run and which.
+### Valid tests
+
+- Don't test something selected from the same data by the effect the test is about.
+  Examples: taxa picked because they differ between treatments, then tested for that difference; samples clustered, then the clusters tested for differences; taxa picked from a heatmap because they look responsive.
+  Such a test is close to certain to come out significant.
+  Select by a criterion independent of the grouping (overall abundance, prevalence), select on other data, or present the selection as description without a test.
+- Check that the unit of replication in the test is the unit the treatment was applied to.
+  Technical replicates, several samples from one mesocosm, core or station, and repeated samples over time are not independent.
+  Average them, or model the dependence (a random effect, `strata` in `adonis2()`), and say which in Materials and Methods.
+  If it isn't clear from the sample metadata what was replicated, ask.
+
+### Writing up
+
+- Check the report against the log.
+  Every test on a question should be in the report, or the report should state how many tests were run and which.
+- Hypotheses in the Introduction must be the ones under `Plans`.
+  A question that came from looking at the data (an NMDS, a barplot, an exploratory test) is presented as arising from the data, not as a hypothesis set up beforehand.
+- When a figure shows a selection (some taxa, some samples), state the selection rule in the caption, such as "the ten most abundant genera".
+  Fix the rule before looking at the plot, not by picking what looks interesting.
 
 ## Guides loaded on demand
 

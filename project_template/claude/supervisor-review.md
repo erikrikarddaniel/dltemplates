@@ -20,6 +20,7 @@ The branch is `origin/<branch>`, and `<default>` is the default branch: `main` o
      Is every test on a question in the report, or is the number of tests stated?
      Were the plans committed before the tests (`git log -p -- docs/analysis_log.md`)?
      Are deviations and exploratory tests labelled as such, and are exploratory results presented as findings?
+     Is any test circular, or does it treat dependent samples as replicates (see "Valid tests")?
      Do the scripts or the report run tests that are missing from the log (search for `adonis2`, `betadisper`, `mantel`, `cor.test`, `t.test`, `wilcox`, `kruskal`, `lm(`, `glm(`, `lmer`, `betta`, differential-abundance packages)?
    - Has anything been committed that shouldn't be: data files, credentials, large outputs, `.Rhistory`?
    - Were files the supervisor maintains edited (this file, scripts copied from the templates, the `Makefile`s)?
