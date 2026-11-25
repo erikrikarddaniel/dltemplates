@@ -97,6 +97,9 @@ Most files are named or contain `__PLACEHOLDER__`-style tokens (e.g. `__TITLE__`
 
 ## Working in this repo
 
+- `project_template/CLAUDE.md` and the guides under `project_template/claude/` are templates being edited here, not instructions for sessions in this repo.
+  Claude Code loads `project_template/CLAUDE.md` as a nested `CLAUDE.md` once files under `project_template/` are read.
+  Ignore its session procedures here: the scaffolding check, the template sync check ("Keeping this file up to date"), the branch workflow and the statistics log.
 - Changes are almost always edits to a single template file; there's no cross-file
   dependency graph to reason about beyond `setup_project.sh`'s references to
   `R/project.Rproj`, `R/convert_to_parquet.R`, `project_template/CLAUDE.md`,
