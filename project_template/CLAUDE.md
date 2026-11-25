@@ -195,6 +195,77 @@ Bringing in changes from the default branch, at the start of a session before th
    Tell the student that their work is untouched, that the supervisor needs to look at this, and what the conflict is.
    Carry on working on the branch without the merge.
 
+## Statistical tests
+
+Most projects here are exploratory: they look for responses of a general kind rather than test hypotheses fixed in advance.
+That makes it easy to try many tests, models, methods or subsets of the data and report what came out significant.
+This is p-hacking, even when nobody intends it.
+Correcting for multiple tests doesn't fix it, because the correction counts only the tests that are reported.
+The rules below apply to every test you run or write code for.
+
+### Log every test
+
+Keep a log in `docs/analysis_log.md`, and create it at the first test.
+Add a row for every statistical test, whatever the result and whether or not it will be reported.
+A test is anything that gives a p-value, a confidence interval used to decide something, or a choice between models.
+Examples: PERMANOVA (`adonis2()`), `betadisper()`, Mantel tests, correlation tests, coefficients from `lm()`, `glm()` or mixed models, differential abundance, indicator species, model selection by AIC.
+Add the row when the test is first run or first written into a script or the report, not on every render.
+If the student says they ran tests outside this session, add those too.
+Never delete or change an old row; add a new row that corrects it.
+
+```markdown
+# Analysis log
+
+## Plans
+
+- 2026-11-25. Does richness differ between treatments? Expect higher richness under nutrient addition. Test: `breakaway::betta()` on the `breakaway_nof1()` estimates, all samples, treatment as fixed effect.
+
+## Tests
+
+| Date | Question | Data | Method | Result | Reason | Reported |
+|---|---|---|---|---|---|---|
+| 2026-11-25 | Richness by treatment | All 24 samples | `betta()`, treatment fixed | p = 0.03 | Plan | Yes |
+| 2026-11-26 | Richness by treatment | Site A only | `betta()`, treatment fixed | p = 0.4 | Deviation: site A sampled a week later | Yes |
+```
+
+`Reason` is `Plan`, `Deviation: <why>` or `Exploratory: <why>`.
+`Reported` is `Yes` or `No`; update it when the results are written up.
+
+### Plan before testing
+
+Before the first test of a question, ask the student to write the question under `Plans`: what they expect, and which data, samples, method and covariates they will use.
+Offer to commit the plan before running the test, so git records that the plan came first.
+Changing the plan later is fine: log the new test as a deviation, with the reason.
+Exploratory tests are fine too: log them as exploratory, and treat their results as ideas for new questions, not as findings.
+
+### Stop and say so
+
+Pause, explain the problem in plain words, and suggest the student talks to their supervisor before going on, when:
+
+- a different test, model, transformation, distance or normalisation is wanted after a result has been seen;
+- samples, outliers or subsets are to be removed or selected after a result has been seen, for a reason not given beforehand;
+- covariates are added or swapped until something becomes significant;
+- only some of the tests on a question are to be reported;
+- the request amounts to finding a test that gives a significant result.
+
+Don't refuse and don't lecture.
+Some changes are right, for example when an assumption is violated or an error is found; then log the reason and report both results.
+Say it once per question.
+If the student goes ahead, log the test and carry on.
+
+### Your own suggestions
+
+- Never suggest another analysis because a result was not significant.
+  Suggest one only for a reason that doesn't depend on the result, such as a violated assumption, and say what the reason is.
+- When a choice is arbitrary (Bray–Curtis or Aitchison distance, rarefied or not, a filtering threshold), run the options as a sensitivity analysis and report them all, rather than picking one.
+- In exploratory work, report effect sizes with confidence intervals first.
+  Don't call a result picked out after the fact significant; call it a candidate to test on new data.
+- For differential abundance, choose one method in the plan, or run several and report where they agree.
+  The methods disagree a lot, so it is easy to end up with the one that gives the most hits.
+
+When writing Results or Discussion, check the report against the log.
+Every test on a question should be in the report, or the report should state how many tests were run and which.
+
 ## Guides loaded on demand
 
 These procedures are long and used rarely, so they live in dltemplates, not in this file.

@@ -16,6 +16,11 @@ The branch is `origin/<branch>`, and `<default>` is the default branch: `main` o
    - Do the pipeline version and the database in the text match the data that was fetched?
    - Are the statistical choices (distance, transformation, rarefaction, correction for multiple tests) appropriate for the question?
    - Are the claims in the Discussion supported by the figures, and no stronger than the data allow?
+   - Read `docs/analysis_log.md` (see "Statistical tests" in `CLAUDE.md`).
+     Is every test on a question in the report, or is the number of tests stated?
+     Were the plans committed before the tests (`git log -p -- docs/analysis_log.md`)?
+     Are deviations and exploratory tests labelled as such, and are exploratory results presented as findings?
+     Do the scripts or the report run tests that are missing from the log (search for `adonis2`, `betadisper`, `mantel`, `cor.test`, `t.test`, `wilcox`, `kruskal`, `lm(`, `glm(`, `lmer`, `betta`, differential-abundance packages)?
    - Has anything been committed that shouldn't be: data files, credentials, large outputs, `.Rhistory`?
    - Were files the supervisor maintains edited (this file, scripts copied from the templates, the `Makefile`s)?
    - Are tools and databases cited from `tools.bib`?
