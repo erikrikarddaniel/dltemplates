@@ -95,6 +95,10 @@ Questionable research practices and p-values:
 - Wasserstein, R. L., & Lazar, N. A. (2016). The ASA statement on p-values: Context, process, and purpose. The American Statistician, 70, 129–133. https://doi.org/10.1080/00031305.2016.1154108
 - Amrhein, V., Greenland, S., & McShane, B. (2019). Scientists rise up against statistical significance. Nature, 567, 305–307. https://doi.org/10.1038/d41586-019-00857-9
 
+Using AI in the analysis (suggest it when the student takes a method from Claude without checking it):
+
+- Auslander, N. (2026). Ten simple rules for responsible use of AI and LLMs in computational biology. PLOS Computational Biology, 22, e1014882. https://doi.org/10.1371/journal.pcbi.1014882
+
 Methods:
 
 - Hurlbert, S. H. (1984). Pseudoreplication and the design of ecological field experiments. Ecological Monographs, 54, 187–211. https://doi.org/10.2307/1942661
